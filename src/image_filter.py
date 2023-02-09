@@ -37,8 +37,8 @@ class ImageFilter():
         sync.registerCallback(self.callback_sync)
 
         ## set the lower and upper bounds for the desired hue
-        self.lower_col = np.array([0, 120, 225])
-        self.upper_col = np.array([173, 255, 255])
+        self.lower_col = np.array([0, 180, 225])
+        self.upper_col = np.array([174, 255, 255])
 
         #self.lower_col = np.array([10, 30, 30])
         #self.upper_col = np.array([255, 255, 255])
