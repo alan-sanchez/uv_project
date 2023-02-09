@@ -19,18 +19,18 @@
 	 <arg name="paused" value="true"/>
 	 <arg name="use_sim_time" value="true"/>
 	 <arg name="headless" value="$(arg headless)"/>
-	 <arg name="world_name" value="$(find fetch_uv_project)/worlds/short_table.world"/>
+	 <arg name="world_name" value="$(find uv_project)/worlds/short_table.world"/>
  </include>
 
  <!-- Oh, you wanted a robot? -->
- <include file="$(find fetch_uv_project)/launch/include/$(arg robot).launch.xml" />
+ <include file="$(find uv_project)/launch/include/$(arg robot).launch.xml" />
 
  <!-- Start rviz with custom rviz config file  -->
  <node type="rviz" name="rviz" pkg="rviz" args="-d $(find uv_project)/rviz/default.rviz" if="$(arg rviz)" />
 
  <!-- Run the main MoveIt executable -->
  <arg name="pipeline" default="$(optenv PLANNING_PIPELINE ompl)" />
- <include file="$(find fetch_uv_project)/launch/move_group.launch">
+ <include file="$(find uv_project)/launch/move_group.launch">
    <arg name="allow_active_sensing" default="true"/>
    <arg name="debug" value="$(arg debug)"/>
    <arg name="pipeline" value="$(arg pipeline)" />
@@ -54,7 +54,7 @@
    <param name="ground_filter/plane" type="double" value="0.07" />
 
    <!-- data source to integrate (PointCloud2) -->
-   <remap from="cloud_in" to="/move_group/filtered_cloud" />
+   <remap from="cloud_in" to="/combined_filtered_image_and_depthmap" />
  </node>
 
 </launch>

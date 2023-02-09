@@ -9,7 +9,7 @@
   <rosparam file="$(find fetch_gazebo)/config/default_controllers.yaml" command="load" />
 
   <!-- URDF and TF support -->
-  <param name="robot_description" command="$(find xacro)/xacro.py $(find fetch_uv_project)/robots/fetch.gazebo.xacro" />
+  <param name="robot_description" command="$(find xacro)/xacro.py $(find uv_project)/robots/fetch.gazebo.xacro" />
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" >
     <param name="publish_frequency" value="100.0"/>
   </node>
@@ -27,7 +27,7 @@
               -J wrist_roll_joint -0.37
               -unpause"/>
 
-  <node name="prepare_robot" pkg="fetch_uv_project" type="prepare_simulated_robot.py" />
+  <node name="prepare_robot" pkg="uv_project" type="prepare_simulated_robot.py" />
 
   <!-- Give this robot a serial number and version -->
   <param name="robot/serial" value="ABCDEFGHIJKLMNOPQRSTUVWX" />

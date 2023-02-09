@@ -1,4 +1,9 @@
 <launch>
+
+<!-- Start image filter node -->
+<node pkg="uv_project" type="image_filter.py"   name="image_filter"   output="screen"/>
+
+<!-- Launch the depth_image_proc nodelet  -->
   <node pkg="nodelet" type="nodelet" name="nodelet_manager" args="manager" />
 
   <node pkg="nodelet" type="nodelet" name="nodelet1"
@@ -8,4 +13,21 @@
     <remap from="depth_registered/image_rect" to="/filtered_depth_image"/>
     <remap from="depth_registered/points" to="combined_filtered_image_and_depthmap"/>
   </node>
+
+<!-- Set up octomap server with appropriate parameters  -->
+ <node pkg="octomap_server" type="octomap_server_node" name="octomap_server">
+   <!-- Resolution in meter for the map when starting an empty map -->
+   <param name="resolution" value="0.01" />
+   <!-- fixed map frame (set to 'map' if SLAM or localization running!) -->
+   <param name="frame_id" type="string" value="odom" />
+   <!-- fixed map frame (set to 'map' if SLAM or localization running!) -->
+   <param name="base_frame_id" type="string" value="base_link" />
+   <!-- maximum range to integrate (speedup!) -->
+   <param name="sensor_model/max_range" value="2.0" />
+   <!-- data source to integrate (PointCloud2) -->
+   <remap from="cloud_in" to="/combined_filtered_image_and_depthmap" />
+   <!-- remap name of occupied_cells_vis_array  -->
+   <remap from="occupied_cells_vis_array" to="filtered_pointcloud" />
+ </node>
+
 </launch>

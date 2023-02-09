@@ -1,13 +1,9 @@
 <launch>
 
 <!-- Start Convex Hull, Plane Fitting, GUI, Waypoint Generator, and Move Group Interface nodes -->
-<node pkg="fetch_sim2real" type="region_generator.py"   name="region_generator"   output="screen"/>
-<node pkg="fetch_sim2real" type="pcl_filter.py"         name="pcl_filter"         output="screen"/>
-<node pkg="fetch_sim2real" type="waypoint_generator.py" name="waypoint_generator" output="screen"/>
-<node pkg="fetch_sim2real" type="velocity_regulator.py" name="velocity_regulator" output="screen"/>
-<node pkg="fetch_sim2real" type="execute_path.py"       name="execute_path"       output="screen"/>
-<node pkg="fetch_sim2real" type="irradiance_vectors.py" name="irradiance_vectors" output="screen"/>
-<node pkg="fetch_sim2real" type="accumulation_map.py"   name="accumulation_map"   output="screen"/>
-<node pkg="fetch_sim2real" type="sync_data.py"          name="sync_data"          output="screen"/>
+<node pkg="uv_project" type="execute_basic_coverage.py" name="execute_basic_coverage" output="screen"/>
+<node pkg="uv_project" type="irradiance_vectors.py"     name="irradiance_vectors"     output="screen"/>
+<!-- <node pkg="fetch_sim2real" type="accumulation_map.py"       name="accumulation_map"       output="screen"/>
+<node pkg="fetch_sim2real" type="sync_data.py"              name="sync_data"              output="screen"/> -->
 
 </launch>
