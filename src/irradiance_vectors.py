@@ -82,9 +82,8 @@ class IrradianceVectors(object):
 
         # Rospy rates and start time.
         rate = rospy.Rate(20.0)
-        start = rospy.get_time()
-        iterations = 0
-
+        
+        print("made it here")
         while self.command == "start":
             # The `self.get_matrix()` function returns a transformation matrix that converts 
             # coordinates in the ee_link frame to the base_link frame
@@ -160,10 +159,8 @@ class IrradianceVectors(object):
         """
         while not rospy.is_shutdown():
             try:
-                (trans,rot) = self.listener.lookupTransform( '/base_link', '/ee_link',rospy.Time(0))
+                (trans,rot) = self.listener.lookupTransform( '/base_link', '/gripper_link',rospy.Time(0))
                 return [trans,rot]
-                if trans:
-                    break
             except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
                 continue
 
@@ -178,12 +175,11 @@ class IrradianceVectors(object):
         while not rospy.is_shutdown():
             try:
                 ee_header = Header()
-                ee_header.frame_id = "/ee_link"
+                ee_header.frame_id = "/gripper_link"
                 ee_header.stamp = rospy.Time.now()
                 transform_matrix = self.listener.asMatrix('/base_link', ee_header)
                 return transform_matrix
-                if transform_matrix:
-                    break
+                
             except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
                 continue
 
@@ -199,13 +195,12 @@ class IrradianceVectors(object):
         circles = []
         for r, n in zip(r, n):
             t = np.linspace(0, 2*np.pi, n, endpoint=False)
-            z = 10**-2*r * np.cos(t)
-            y = 10**-2*r * np.sin(t)
-            x = [0.3]*len(z)
+            x = 10**-2*r * np.cos(t)    # Convert to meters by using 10**-2
+            y = 10**-2*r * np.sin(t)    # Convert to meters by using 10**-2
+            z = [-0.3]*len(x)
             circles.append(np.c_[x, y, z])
             concatenate = np.concatenate( circles, axis=0 )
         return concatenate
-
 
 if __name__=="__main__":
     # Initialize irradiance_vectors node

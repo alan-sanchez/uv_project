@@ -27,7 +27,9 @@ class OctmapPublisher:
         :param self: The self reference.
         :param msg: The PoseArray message type.
         """
-        self.oct_pub.publish(msg)
+        print(type(msg.binary))
+        print((msg.data))
+        # self.oct_pub.publish(msg)
 
 if __name__ == '__main__':
     # Initialize velocity_regulator node

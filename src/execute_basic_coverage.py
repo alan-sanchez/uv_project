@@ -7,11 +7,8 @@ import moveit_commander
 import moveit_msgs.msg
 import tf.transformations
 
-
 ## Import message types and other python librarires
-from threading import Thread
-from moveit_msgs.msg import MoveItErrorCodes, PlanningScene, RobotTrajectory
-from moveit_python import MoveGroupInterface, PlanningSceneInterface
+from moveit_python import PlanningSceneInterface
 from std_msgs.msg import String
 from geometry_msgs.msg import  Pose, Point, Quaternion
 
@@ -57,7 +54,7 @@ class ExecutePath(object):
         self.planning_scene = PlanningSceneInterface("base_link")
         
     def plan_cartesian_path(self):
-        ## Cartesian Paths
+        ## Cartesian waypoints
         waypoints = [Pose(Point(0.75,  0.20, 1.2),Quaternion(0.000, 0.0, 0, 1)),
                      Pose(Point(0.75,  0.00, 1.2),Quaternion(0.000, 0.0, 0, 1)),
                      Pose(Point(0.75, -0.20, 1.2),Quaternion(0.000, 0.0, 0, 1)),
@@ -68,9 +65,9 @@ class ExecutePath(object):
                                                              0.00)      # jump_threshold
 
         plan = self.group.retime_trajectory(self.robot.get_current_state(),
-        plan,
-        velocity_scaling_factor = 0.2,
-        )
+                                            plan,
+                                            velocity_scaling_factor = 0.2,
+                                            )
 
         return plan
 
@@ -79,10 +76,9 @@ class ExecutePath(object):
         self.start_pub.publish("start")
 
         self.group.execute(plan, wait=True)
-        ## print(time.time()-start_time)
 
         # Publish string command to stop UV accumulation mapping from other nodes
-        self.stop_pub.publish("stop")
+        self.stop_pub.publish("stop") 
 
     def init_pose(self, vel = 0.2):
         """
@@ -107,6 +103,9 @@ if __name__ == '__main__':
     
     rate = rospy.Rate(10)
     while not rospy.is_shutdown():
+        ## Pause for 2 seconds after the motion is completed
+        rospy.sleep(2)
+        
         ## Wait for user input before generating new disinfection region
         ## Print out instructions for user input to get things started
         print("")
