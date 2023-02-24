@@ -26,8 +26,7 @@ class ExecutePath(object):
         super(ExecutePath, self).__init__()
         
         ## Initialize Publisher
-        self.start_pub = rospy.Publisher('start', String, queue_size=10)
-        self.stop_pub  = rospy.Publisher('stop',  String, queue_size=10)
+        self.command_pub = rospy.Publisher('/command', String, queue_size=10)
 
         ## First initialize `moveit_commander`
         moveit_commander.roscpp_initialize(sys.argv)
@@ -73,12 +72,12 @@ class ExecutePath(object):
 
     def execute_plan(self, plan):
         # Publish string command to initiate functions in other nodes
-        self.start_pub.publish("start")
+        self.command_pub.publish("start")
 
         self.group.execute(plan, wait=True)
 
         # Publish string command to stop UV accumulation mapping from other nodes
-        self.stop_pub.publish("stop") 
+        self.command_pub.publish("stop") 
 
     def init_pose(self, vel = 0.2):
         """
@@ -92,13 +91,16 @@ class ExecutePath(object):
 
         ## List of joint positions for the initial pose
         joints = [.15, 1.41, 0.30, -0.22, -2.25, -1.56, 1.80, -0.37,]
-        plan = self.group.go(joints, wait=True)
-
-
-
+        self.group.go(joints, wait=True)
+        
 if __name__ == '__main__':
     ## First initialize `moveit_commander`_ and a `rospy`_ node:
     rospy.init_node('execute_path', anonymous=True)
+    ## Instantiate a `ExecutePath` object
+    motion = ExecutePath()
+
+    rospy.loginfo("Moving arm to init position.")
+    motion.init_pose()
 
     
     rate = rospy.Rate(10)
@@ -111,9 +113,7 @@ if __name__ == '__main__':
         print("")
         print("====== Press 'Enter' to execute basic motion =======")
         raw_input()
-
-        ## Instantiate a `ExecutePath` object
-        motion = ExecutePath()
+   
         plan = motion.plan_cartesian_path()
         motion.execute_plan(plan)
         motion.init_pose()
