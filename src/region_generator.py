@@ -10,8 +10,6 @@ import sys
 from scipy.spatial import ConvexHull
 from std_msgs.msg import Header
 from geometry_msgs.msg import PolygonStamped, Point32
-from visualization_msgs.msg import Marker
-from shapely.geometry.polygon import LinearRing
 
 class Region:
     """

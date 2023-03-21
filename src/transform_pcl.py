@@ -2,7 +2,6 @@
 
 # Import modules
 import rospy
-import numpy as np
 import tf
 import sensor_msgs.point_cloud2 as pc2
 
@@ -19,35 +18,45 @@ class TransformPCL(object):
     """
     def __init__(self):
         """
-        A function that initialises  the subscriber, publisher, and other variables.
+        A function that initialises the subscriber, publisher, and other variables.
         :param self: The self reference.
         """
         ## Initialize Subscribers
-        self.combined_pcl2_sub   = rospy.Subscriber('/combined_filtered_image_and_depthmap', PointCloud2, self.callback_pcl2)
-        self.oct_center_pcl2_sub = rospy.Subscriber('/octomap_point_cloud_centers',          PointCloud2, self.callback_oct_center_pcl2)
-        self.start_sub           = rospy.Subscriber('/command',                              String,      self.callback_command)
+        self.combined_pcl2_sub   = rospy.Subscriber('/gripper_camera',              PointCloud2, self.callback_combined_pcl2)
+        self.oct_center_pcl2_sub = rospy.Subscriber('/octomap_point_cloud_centers', PointCloud2, self.callback_oct_center_pcl2)
+        self.start_sub           = rospy.Subscriber('/command',                     String,      self.callback_command)
         
         ## Initialize PointCloud Publisher
-        self.transformed_pcl_pub = rospy.Publisher("/transformed_cloud",    PointCloud, queue_size=1)
-        self.combined_pcl_pub    = rospy.Publisher("/combined_point_cloud", PointCloud, queue_size=1)
-        self.oct_pcl_center_pub  = rospy.Publisher("/octomap_pcl_centers",  PointCloud, queue_size=1)
+        self.baselink_pcl_pub = rospy.Publisher("/baselink_reference_pcl", PointCloud, queue_size=5)
+        self.gripper_pcl_pub  = rospy.Publisher("/gripper_reference_pcl",  PointCloud, queue_size=5)
+        self.oct_centers_pub  = rospy.Publisher("/octomap_centers_pcl",    PointCloud, queue_size=5)
         
         ## Initialize transform listener
         self.listener = tf.TransformListener()
 
-        ## Initialize self.cloud for data storage in pointcloud_data callback function
-        self.pcl2_cloud = None
+        ## Initialize `self.oct_center_pcl2` as None. The data from the center cells
+        ## of the octomap will be stored here
+        self.oct_center_pcl2 = None
 
-        ## 
+        ## Initialize self.command
         self.command = "stop"
 
     def callback_oct_center_pcl2(self, pcl2_msg):
         """
+        A function that stores the PointCloud2 message types which represents 
+        the center of the cells from the octomap.
+        :param self: The self reference.
+        :param pcl2_msg: The PointCloud2 message.
         """
         self.oct_center_pcl2 = pcl2_msg
 
     def callback_command(self,str_msg):
         """
+        A function that publishes the octomap center cells as a PointCloud message type.
+        The function also transforms the coordinates from the its orignial tf to the 
+        `base_link`. 
+        :param self: The self reference.
+        :param str_msg: A String message type.
         """
         if str_msg.data == "start":
             ## Initialize a new point cloud message type to store position data.
@@ -59,50 +68,49 @@ class TransformPCL(object):
             for data in pc2.read_points(self.oct_center_pcl2, skip_nans=True):
                 pcl_cloud.points.append(Point32(data[0],data[1],data[2]))
 
-            ## 
+            ## Transform the pointcloud message to reference the `base_link`
             octomap_center_pcl = self.transform_pointcloud(pcl_cloud, "/base_link")
-            self.oct_pcl_center_pub.publish(octomap_center_pcl)       
+            self.oct_centers_pub.publish(octomap_center_pcl)       
 
             self.command = str_msg.data 
 
         else:
             self.command = str_msg.data
 
-    def callback_pcl2(self, pcl2_msg):
+    def callback_combined_pcl2(self, pcl2_msg):
         """
-        Callback function that stores the pointcloud2 message.
+        Callback function that stores the PointCloud2 message of the combined
+        filtered image and depth map. This function also transforms the cooridnates 
+        from its original transform frame to the `base_link` and `gripper_link`. 
         :param self: The self reference.
         :param pcl2_msg: The PointCloud2 message type.
         """
-        ## 
-        self.pcl2_cloud = pcl2_msg
-
-        ## 
         if self.command == "start":
 
             ## Initialize a new point cloud message type to store position data.
             pcl_cloud = PointCloud()
-            pcl_cloud.header = self.pcl2_cloud.header
+            pcl_cloud.header = pcl2_msg.header
             pcl_cloud.header.stamp=rospy.Time.now()
 
             ## For loop to extract pointcloud2 data into a list of x,y,z, and
             ## store it in a pointcloud message (pcl_cloud)
-            for data in pc2.read_points(self.pcl2_cloud, skip_nans=True):
+            for data in pc2.read_points(pcl2_msg, skip_nans=True):
                 pcl_cloud.points.append(Point32(data[0],data[1],data[2]))
 
-            ##
+            ## Transform the pointcloud message to reference the `base_link`
             base_cloud = self.transform_pointcloud(pcl_cloud, "/base_link")
-            self.combined_pcl_pub.publish(base_cloud)
+            self.baselink_pcl_pub.publish(base_cloud)
 
-            ## Transform the pointcloud message to reference the base_link
-            transformed_cloud = self.transform_pointcloud(pcl_cloud,"/gripper_link")
-            self.transformed_pcl_pub.publish(transformed_cloud)
+            ## Transform the pointcloud message to reference the `gripper_link`
+            transformed_cloud = self.transform_pointcloud(pcl_cloud,"/uv_light_link")
+            self.gripper_pcl_pub.publish(transformed_cloud)
 
     def transform_pointcloud(self,pcl_cloud, target_frame):
         """
-        Function that stores the pointcloud2 message.
+        Function that transform a PointCloud coordinates to a target transform frame
         :param self: The self reference.
         :param pcl_cloud: The PointCloud message.
+        :param target_frame: A string message. 
 
         :returns new_cloud: PointCloud message.
         """
@@ -115,7 +123,6 @@ class TransformPCL(object):
                 return new_cloud
             except (tf.LookupException, tf.ConnectivityException,tf.ExtrapolationException):
                 pass    
-
 
 if __name__=="__main__":
     ## Initialize transform_pcl node
