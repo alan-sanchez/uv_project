@@ -100,8 +100,7 @@ class AccumulationMap(object):
 
     def callback_command(self, str_msg):
         """
-        Function that stores the filtered point cloud and create new octree for
-        castRay calculations.
+        Function that stores the filtered point cloud and create new octree.
         :param self: The self reference.
         :param msg: The PointCloud message type.
         """
@@ -146,11 +145,12 @@ class AccumulationMap(object):
         self.oct_center_pcl = pcl_msg
     
 
-    def callback_sync(self, gripper_pcl, baselink_pcl):
+    def callback_sync(self, uv_light_pcl, baselink_pcl):
         """
-        Callback function that
+        Callback function that transforms gripper camera to reference the `base_link` 
+        and `uv_light_link`.
         :param self: The self reference.
-        :param gripper_pcl: A PointCloud message referencing the gripper_link.
+        :param uv_light_pcl: A PointCloud message referencing the uv_light_link.
         :param baselink_pcl: A PointCloud message referencing the base_link.
         """
         ## This resets the prev_time variable to None after a trajectory execution
@@ -163,7 +163,7 @@ class AccumulationMap(object):
         ## Create temporary empty lists and execute for loop to temporary uv dose map
         temp_dict = dict()
 
-        for gripper_coord, base_coord in zip(gripper_pcl.points, baselink_pcl.points):
+        for uv_light_coord, base_coord in zip(uv_light_pcl.points, baselink_pcl.points):
             ## Check if the base_coord is in the defined region    
             point = geometry.Point(base_coord.x,base_coord.y)
             if self.polygon.contains(point) == False:
@@ -171,8 +171,8 @@ class AccumulationMap(object):
 
             ## Calculate the angle (radians) between the z-axis vector and 
             ## gripper point coordinates, `tip`
-            ray_length = np.linalg.norm([gripper_coord.x,gripper_coord.y,gripper_coord.z])        
-            numerator = np.dot(self.grip_vec, [gripper_coord.x,gripper_coord.y,gripper_coord.z])
+            ray_length = np.linalg.norm([uv_light_coord.x,uv_light_coord.y,uv_light_coord.z])        
+            numerator = np.dot(self.grip_vec, [uv_light_coord.x,uv_light_coord.y,uv_light_coord.z])
             denominator = self.mag_grip_vec * ray_length
             rad = np.arccos(numerator/denominator)
            
