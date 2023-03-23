@@ -49,7 +49,7 @@ class AccumulationMap(object):
         self.resolution = 0.05
         self.octree = octomap.OcTree(self.resolution)
 
-        ## vector
+        ## vector the points straight down from uv_light_link
         self.grip_vec = [0,0,-.3]
         self.mag_grip_vec = np.linalg.norm(self.grip_vec)
 
@@ -60,17 +60,17 @@ class AccumulationMap(object):
         ## at 99% disinfection rate is, 53.10 (J/m^2)
         self.required_dose = 53.10
 
-        ## 
+        ## Command that begins and stops accumulation map and markers
         self.command = None
 
         ## Bring in the UV light source model as an equation
         self.eqn_model = fit(16, plotter = False) 
 
-        ## Set a previous time
+        ## Set a previous time as now and time exposure as zero
         self.prev_time = rospy.get_time()
         self.time_exposure = 0
 
-        # Initiate stuff
+        # Initiate dictionaries
         self.acc_map_dict = dict()
         self.cube_id_dict = dict()
 
@@ -92,11 +92,10 @@ class AccumulationMap(object):
         ## Initialize MarkerArray
         self.markerArray = MarkerArray()
 
-        ## Create Region 
-        self.region = [[0.705, 0.55], [0.75, 0.55], [0.75, -0.55], [0.705, -0.55]]
+        ## Create sensor array region 
+        self.region = [[0.705, 0.55], [0.725, 0.55], [0.725, -0.55], [0.705, -0.55]]
         self.line = geometry.LineString(self.region)
         self.polygon = geometry.Polygon(self.line)
-
 
 
     def callback_command(self, str_msg):
@@ -107,7 +106,7 @@ class AccumulationMap(object):
         :param msg: The PointCloud message type.
         """
         if str_msg.data == "start":
-            ##
+            ## Clear previous octree, markers, and dictrionaries
             self.octree.clear()
             self.acc_map_dict = dict()
             self.cube_id_dict = dict()
@@ -129,12 +128,13 @@ class AccumulationMap(object):
             ## Insert a 3D scan into the the tree
             self.octree.insertPointCloud(pointcloud = self.pointcloud, origin = np.array([0, 0, 0], dtype=float)) # self.octree.writeBinary(b"before.bt")
 
-            ##
+            ## Set command
             self.command = str_msg.data
 
         elif str_msg.data == "stop": 
+            ## Set command
             self.command = str_msg.data
-            # print(self.acc_map_dict)
+            print(self.acc_map_dict)
 
 
     def callback_oct_center_pcl(self,pcl_msg):
@@ -163,23 +163,22 @@ class AccumulationMap(object):
         ## Create temporary empty lists and execute for loop to temporary uv dose map
         temp_dict = dict()
 
-        for vector_tip, coord in zip(gripper_pcl.points, baselink_pcl.points):
-            
-            point = geometry.Point(coord.x,coord.y)
+        for gripper_coord, base_coord in zip(gripper_pcl.points, baselink_pcl.points):
+            ## Check if the base_coord is in the defined region    
+            point = geometry.Point(base_coord.x,base_coord.y)
             if self.polygon.contains(point) == False:
                 continue
 
             ## Calculate the angle (radians) between the z-axis vector and 
             ## gripper point coordinates, `tip`
-            ray_length = np.linalg.norm([vector_tip.x,vector_tip.y,vector_tip.z])        
-            numerator = np.dot(self.grip_vec, [vector_tip.x,vector_tip.y,vector_tip.z])
+            ray_length = np.linalg.norm([gripper_coord.x,gripper_coord.y,gripper_coord.z])        
+            numerator = np.dot(self.grip_vec, [gripper_coord.x,gripper_coord.y,gripper_coord.z])
             denominator = self.mag_grip_vec * ray_length
             rad = np.arccos(numerator/denominator)
-            # if ray_length < .35:
-                # print(ray_length)
+           
             if rad < self.bound:
-                chk, key = self.octree.coordToKeyChecked(np.array([coord.x, coord.y, coord.z]))
-               
+                chk, key = self.octree.coordToKeyChecked(np.array([base_coord.x, base_coord.y, base_coord.z]))
+                # print(chk)
                 if chk:
                     ## compute the UV dose for the conical `rad` value
                     radius = 0.3 * math.tan(rad)
@@ -187,7 +186,7 @@ class AccumulationMap(object):
                     dist_ratio = (0.3**2)/(ray_length**2)
                     dose = dist_ratio * self.time_exposure * ir
 
-                    ## Pull cooridnates of cell key
+                    ## Pull coordinates of cell key
                     pos = tuple(self.octree.keyToCoord(key))
                     
                     if pos in temp_dict:
@@ -199,13 +198,13 @@ class AccumulationMap(object):
         for pose_key in temp_dict:
             dose_value = sum(temp_dict[pose_key])/len(temp_dict[pose_key])
 
-            ## 
+            ## Update accumulation map dictionary
             if pose_key in self.acc_map_dict:
                 self.acc_map_dict[pose_key] += dose_value
             else:
                 self.acc_map_dict[pose_key] = dose_value
 
-            ## 
+            ## Update cube id dictionary
             if pose_key in self.cube_id_dict:
                 self.marker.id = self.cube_id_dict[pose_key]
             else:
@@ -213,21 +212,20 @@ class AccumulationMap(object):
 
                 self.marker.id = self.cube_id_dict[pose_key]
             
-            ##
+            ## Update the color id based on UV values
             if self.acc_map_dict[pose_key] < self.required_dose:
                 self.marker.color = ColorRGBA(1,0,0, 0.5)
             else:
                 self.marker.color = ColorRGBA(0,1,0,1)
 
-            ##
+            ## Set point to marker
             self.marker.points = [Point(pose_key[0], pose_key[1], pose_key[2]),]
 
-            ##
+            ## Append and publish 
             self.markerArray.markers.append(self.marker)
             self.MarkerArray_publisher.publish(self.markerArray)
 
         ## Set new prev_time as current time before the beginning of next loop iteration
-        # self.prev_time = rospy.get_time()
         self.time_exposure = rospy.get_time() - self.prev_time
         self.prev_time = rospy.get_time()
 
