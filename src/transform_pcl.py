@@ -22,7 +22,7 @@ class TransformPCL(object):
         :param self: The self reference.
         """
         ## Initialize Subscribers
-        self.combined_pcl2_sub   = rospy.Subscriber('/gripper_camera',              PointCloud2, self.callback_combined_pcl2)
+        self.combined_pcl2_sub   = rospy.Subscriber('/pcl2_from_gripper_camera',    PointCloud2, self.callback_combined_pcl2)
         self.oct_center_pcl2_sub = rospy.Subscriber('/octomap_point_cloud_centers', PointCloud2, self.callback_oct_center_pcl2)
         self.start_sub           = rospy.Subscriber('/command',                     String,      self.callback_command)
         
@@ -53,8 +53,7 @@ class TransformPCL(object):
     def callback_command(self,str_msg):
         """
         A function that publishes the octomap center cells as a PointCloud message type.
-        The function also transforms the coordinates from the its orignial tf to the 
-        `base_link`. 
+        The function also transforms the coordinates to reference the `base_link`. 
         :param self: The self reference.
         :param str_msg: A String message type.
         """
@@ -81,7 +80,7 @@ class TransformPCL(object):
         """
         Callback function that stores the PointCloud2 message of the combined
         filtered image and depth map. This function also transforms the cooridnates 
-        from its original transform frame to the `base_link` and `gripper_link`. 
+        from its original transform frame to the `base_link` and `uv_light_link`. 
         :param self: The self reference.
         :param pcl2_msg: The PointCloud2 message type.
         """
@@ -97,11 +96,13 @@ class TransformPCL(object):
             for data in pc2.read_points(pcl2_msg, skip_nans=True):
                 pcl_cloud.points.append(Point32(data[0],data[1],data[2]))
 
+            print(pcl_cloud.points)
+
             ## Transform the pointcloud message to reference the `base_link`
             base_cloud = self.transform_pointcloud(pcl_cloud, "/base_link")
             self.baselink_pcl_pub.publish(base_cloud)
 
-            ## Transform the pointcloud message to reference the `gripper_link`
+            ## Transform the pointcloud message to reference the `uv_light_link`
             transformed_cloud = self.transform_pointcloud(pcl_cloud,"/uv_light_link")
             self.gripper_pcl_pub.publish(transformed_cloud)
 
