@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 
 ## Import modules
 import rospy
@@ -16,12 +16,12 @@ from tf2_ros import StaticTransformBroadcaster
 class Broadcaster():
     """
     This node publishes a child static frame in reference to their parent frame as below:
-    parent -> camera            child -> base_link
+    parent -> gripper_link            child -> camera_link
+    parent -> gripper_link            child -> uv_light_link
     """
     def __init__(self):
         """
-        A function that creates a broadcast node and publishes three new transform
-        frames.
+        A function that creates a broadcast node and publishes new transform frames.
         :param self: The self reference.
         """
         ## Create a broadcast node
@@ -38,7 +38,7 @@ class Broadcaster():
         ## Set pose values to transform
         self.camera.transform.translation.x = -0.09
         self.camera.transform.translation.y =  0.0175
-        self.camera.transform.translation.z = -0.07
+        self.camera.transform.translation.z = -0.063
         q = tf.transformations.quaternion_from_euler(0,math.pi/2,0)
         self.camera.transform.rotation.x = q[0]
         self.camera.transform.rotation.y = q[1]
@@ -63,10 +63,8 @@ class Broadcaster():
         self.uv_light.transform.rotation.z = q[2]
         self.uv_light.transform.rotation.w = q[3]
 
-
         ## Publish transforms in a list
         self.br.sendTransform([self.camera, self.uv_light])
-
 
         ## Create rospy log message
         rospy.loginfo('Publishing TF frames. Use RViz to visualize')
@@ -78,7 +76,4 @@ if __name__ == '__main__':
     ## Instantiate the `Broadcaster()` class
     Broadcaster()
 
-    ## Give control to ROS.  This will allow the callback to be called whenever new
-    ## messages come in.  If we don't put this line in, then the node will not work,
-    ## and ROS will not process any messages
     rospy.spin()
