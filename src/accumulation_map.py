@@ -1,14 +1,13 @@
 #!/usr/bin/env python3
 
-# Import modules
+## Import modules
 import rospy
 import numpy as np
 import math
 import octomap
 import message_filters
-import operator as op
 
-# Import message types and other python libraries
+## Import message types and other python libraries
 from sensor_msgs.msg import PointCloud
 from geometry_msgs.msg import Point
 from std_msgs.msg import Header, String, ColorRGBA
@@ -19,12 +18,11 @@ from shapely import geometry
 
 class AccumulationMap(object):
     """
-    A class that publishes the direction and irridance values of the UV vectors
-    whose origins are from the end effector.
+    A class that builds an accumulation UV dose map.
     """
     def __init__(self):
         """
-        A function that initialises  the subscriber, publisher, and other variables.
+        A function that initialises the subscriber, publisher, and other variables.
         :param self: The self reference.
         """
         ## Initialize Subscribers
@@ -49,7 +47,7 @@ class AccumulationMap(object):
         self.resolution = 0.05
         self.octree = octomap.OcTree(self.resolution)
 
-        ## vector the points straight down from uv_light_link
+        ## vector the points straight down in the z direction from `uv_light_link` tf
         self.grip_vec = [0,0,-.3]
         self.mag_grip_vec = np.linalg.norm(self.grip_vec)
 
@@ -93,7 +91,7 @@ class AccumulationMap(object):
         self.markerArray = MarkerArray()
 
         ## Create sensor array region 
-        self.region = [[0.705, 0.55], [0.725, 0.55], [0.725, -0.55], [0.705, -0.55]]
+        self.region = [[0.725, 0.51], [0.745, 0.51], [0.745, -0.51], [0.725, -0.51]]
         self.line = geometry.LineString(self.region)
         self.polygon = geometry.Polygon(self.line)
 
@@ -175,6 +173,8 @@ class AccumulationMap(object):
             numerator = np.dot(self.grip_vec, [uv_light_coord.x,uv_light_coord.y,uv_light_coord.z])
             denominator = self.mag_grip_vec * ray_length
             rad = np.arccos(numerator/denominator)
+
+            # print(rad)
            
             if rad < self.bound:
                 chk, key = self.octree.coordToKeyChecked(np.array([base_coord.x, base_coord.y, base_coord.z]))
