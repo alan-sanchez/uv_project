@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 
-# Import modules
+## Import modules
 import rospy
 import tf
 import sensor_msgs.point_cloud2 as pc2
 
-# Import message types and other python libraries
-from sensor_msgs.msg import PointCloud2, PointCloud
+## Import message types and other python libraries
+from sensor_msgs.msg import PointCloud2, PointCloud, ChannelFloat32
 from geometry_msgs.msg import Point32
 from std_msgs.msg import String
 
@@ -18,15 +18,15 @@ class TransformPCL(object):
     """
     def __init__(self):
         """
-        A function that initialises the subscriber, publisher, and other variables.
+        A function that initializes the subscriber, publisher, and other variables.
         :param self: The self reference.
         """
         ## Initialize Subscribers
-        self.combined_pcl2_sub   = rospy.Subscriber('/pcl2_from_gripper_camera',    PointCloud2, self.callback_combined_pcl2)
-        self.oct_center_pcl2_sub = rospy.Subscriber('/octomap_point_cloud_centers', PointCloud2, self.callback_oct_center_pcl2)
+        self.combined_pcl2_sub   = rospy.Subscriber('/pcl_depthmap',                PointCloud2, self.callback_combined_pcl2,   queue_size=1)
+        self.oct_center_pcl2_sub = rospy.Subscriber('/octomap_point_cloud_centers', PointCloud2, self.callback_oct_center_pcl2, queue_size=1)
         self.start_sub           = rospy.Subscriber('/command',                     String,      self.callback_command)
         
-        ## Initialize PointCloud Publisher
+        ## Initialize PointCloud Publishers
         self.baselink_pcl_pub = rospy.Publisher("/baselink_reference_pcl", PointCloud, queue_size=5)
         self.gripper_pcl_pub  = rospy.Publisher("/gripper_reference_pcl",  PointCloud, queue_size=5)
         self.oct_centers_pub  = rospy.Publisher("/octomap_centers_pcl",    PointCloud, queue_size=5)
@@ -61,12 +61,12 @@ class TransformPCL(object):
             ## Initialize a new point cloud message type to store position data.
             pcl_cloud = PointCloud()
             pcl_cloud.header = self.oct_center_pcl2.header
-
+            
             ## For loop to extract pointcloud2 data into a list of x,y,z, and
             ## store it in a pointcloud message (pcl_cloud)
             for data in pc2.read_points(self.oct_center_pcl2, skip_nans=True):
                 pcl_cloud.points.append(Point32(data[0],data[1],data[2]))
-
+               
             ## Transform the pointcloud message to reference the `base_link`
             octomap_center_pcl = self.transform_pointcloud(pcl_cloud, "/base_link")
             self.oct_centers_pub.publish(octomap_center_pcl)       
@@ -90,13 +90,22 @@ class TransformPCL(object):
             pcl_cloud = PointCloud()
             pcl_cloud.header = pcl2_msg.header
             pcl_cloud.header.stamp=rospy.Time.now()
+            # intensity_channel = ChannelFloat32()
+            # intensity_channel.name = "intensity"
+            # intensity_channel.values = []
 
             ## For loop to extract pointcloud2 data into a list of x,y,z, and
             ## store it in a pointcloud message (pcl_cloud)
+            # count = 0
             for data in pc2.read_points(pcl2_msg, skip_nans=True):
                 pcl_cloud.points.append(Point32(data[0],data[1],data[2]))
+                # intensity_channel.values.append(255)
+                # print(data)
+            
+            # print(count)
+            # print(pcl_cloud.points)
 
-            print(pcl_cloud.points)
+            # pcl_cloud.channels = [intensity_channel]
 
             ## Transform the pointcloud message to reference the `base_link`
             base_cloud = self.transform_pointcloud(pcl_cloud, "/base_link")
@@ -115,6 +124,7 @@ class TransformPCL(object):
 
         :returns new_cloud: PointCloud message.
         """
+
         pcl_cloud.header.stamp=rospy.Time.now()
         while not rospy.is_shutdown():
             try:
