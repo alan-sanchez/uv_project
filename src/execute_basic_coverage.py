@@ -54,10 +54,12 @@ class ExecutePath(object):
         self.planning_scene.addBox("keepout", 0.25, 0.5, 0.09, 0.15, 0.0, 0.375)
 
         ##
-        self.velocity = 0.285 #0.571
-        # self.acceleration = (self.velocity**2) / ( 5 * 0.55  )
+        self.velocity = 0.28 # 0.19 #0.571
  
     def plan_cartesian_path(self):
+        """
+        
+        """
         ## Cartesian waypoints
         waypoints = [Pose(Point(0.735,  0.60, 1.2),Quaternion(0.131, 0, 0, 0.991)),
                      Pose(Point(0.735,  0.50, 1.2),Quaternion(0.000, 0.0, 0, 1)),
@@ -66,10 +68,10 @@ class ExecutePath(object):
                      Pose(Point(0.735,  0.00, 1.2),Quaternion(0.000, 0.0, 0, 1)),
                      Pose(Point(0.735, -0.25, 1.2),Quaternion(0.000, 0.0, 0, 1)),
                      Pose(Point(0.735, -0.50, 1.2),Quaternion(0.000, 0.0, 0, 1)),
-                     Pose(Point(0.735, -0.6, 1.2),Quaternion(-0.131, 0, 0, 0.991)),
+                     Pose(Point(0.735, -0.60, 1.2),Quaternion(-0.131, 0, 0, 0.991)),
                      ]
 
-        # waypoints = [Pose(Point(0.725,  -0.50, 1.2),Quaternion(0,0,0,1))]
+        # waypoints = [Pose(Point(0.735,  0.50, 1.2),Quaternion(0,0,0,1))]
 
         (plan, fraction) = self.group.compute_cartesian_path(waypoints, # waypoints to follow
                                                              0.1,       # eef_step
@@ -77,19 +79,20 @@ class ExecutePath(object):
 
         plan = self.group.retime_trajectory(self.robot.get_current_state(),
                                             plan,
-                                            velocity_scaling_factor = self.velocity,)
-                                            # acceleration_scaling_factor = self.acceleration
-                                            # )
-
+                                            velocity_scaling_factor = self.velocity,
+                                            )
         return plan
 
     def execute_plan(self, plan):
-        # Publish string command to initiate functions in other nodes
+        """
+        
+        """
+        ## Publish string command to initiate functions in other nodes
         self.command_pub.publish("start")
 
         self.group.execute(plan, wait=True)
 
-        # Publish string command to stop UV accumulation mapping from other nodes
+        ## Publish string command to stop UV accumulation mapping from other nodes
         self.command_pub.publish("stop") 
 
     def init_pose(self, vel = 0.2):
@@ -103,8 +106,8 @@ class ExecutePath(object):
         self.client = MoveGroupInterface("arm_with_torso", "base_link")
         rospy.loginfo("...connected")
 
-        # Padding does not work (especially for self collisions)
-        # So we are adding a box above the base of the robot
+        ## Padding does not work (especially for self collisions)
+        ## So we are adding a box above the base of the robot
         scene = PlanningSceneInterface("base_link")
         scene.addBox("keepout", 0.25, 0.5, 0.09, 0.15, 0.0, 0.375)
 
@@ -140,12 +143,13 @@ if __name__ == '__main__':
         print("")
         print("====== Press 'Enter' to execute basic motion =======")
         raw_input()
-   
         plan = motion.plan_cartesian_path()
         motion.execute_plan(plan)
+        
         print("")
         print("====== Press 'Enter' to return to initial position =======")
         raw_input()
         motion.init_pose()
+        
         rate.sleep()
 

@@ -30,7 +30,7 @@ class IrradianceVectors(object):
         ## Initialize self.cloud for data storage in pointcloud_data callback function
         self.pcl2_cloud = None
 
-        ## 
+        ## Create a list that represents a vector in the -z direction
         self.a = [0,0,-.3]
         self.mag_a = np.linalg.norm(self.a)
 
@@ -43,7 +43,7 @@ class IrradianceVectors(object):
         :param self: The self reference.
         :param pcl2_msg: The PointCloud2 message type.
         """
-        ## 
+        ## Store PointCloud2 message type
         self.pcl2_cloud = pcl2_msg
 
         ## Initialize a new point cloud message type to store position data.
@@ -58,7 +58,7 @@ class IrradianceVectors(object):
         ## Transform the pointcloud message to reference the base_link
         transformed_cloud = self.transform_pointcloud(pcl_cloud)
 
-        ## 
+        ## Compute conical angle
         for loc in transformed_cloud.points:
             numerator = np.dot(self.a, [loc.x,loc.y,loc.z])
             denominator = self.mag_a * np.linalg.norm([loc.x,loc.y,loc.z])
