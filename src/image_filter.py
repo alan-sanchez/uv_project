@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 
-# Import modules
+## Import modules
 import rospy
 import cv2
 import message_filters
 import numpy as np
 
-# Import message types and other pyton libraries
+## Import message types and other pyton libraries
 from cv_bridge import CvBridge
 from sensor_msgs.msg import Image
 
@@ -25,8 +25,8 @@ class ImageFilter():
         self.depth_publisher = rospy.Publisher('filtered_depth_image', Image, queue_size=5)
 
         ## Initialize subscribers
-        self.image_sub       = message_filters.Subscriber('/camera/color/image_raw',                    Image)
-        self.depth_image_sub = message_filters.Subscriber('/camera/aligned_depth_to_color/image_raw', Image)
+        self.image_sub       = message_filters.Subscriber('/camera/color/image_raw',                  Image) #head_camera/rgb/image_raw'
+        self.depth_image_sub = message_filters.Subscriber('/camera/aligned_depth_to_color/image_raw', Image) #head_camera/depth_registered/image
 
         sync = message_filters.ApproximateTimeSynchronizer([self.image_sub,
                                                             self.depth_image_sub],
@@ -39,7 +39,7 @@ class ImageFilter():
         # self.upper_col = np.array([174, 255, 255])
 
         ## set the lower and upper bounds for the desired hue
-        self.lower_col = np.array([0, 10, 250])
+        self.lower_col = np.array([0, 2, 150])
         self.upper_col = np.array([180, 255, 255])
 
         ## Instantiate a `CvBridge` object
@@ -58,7 +58,7 @@ class ImageFilter():
         :param depth_msg: A Image message type.
         """
         ## Convert ROS image type to OpenCV message type. Then convert the image
-        ## color spcace to another by using the `cv2.cvtColor()` method
+        ## color space to another by using the `cv2.cvtColor()` method
         image = cv2.cvtColor(self.bridge.imgmsg_to_cv2(img_msg, 'rgb8'), cv2.COLOR_RGB2HSV)
 
         ## Create a mask for violet color using the inRange method
@@ -70,11 +70,11 @@ class ImageFilter():
         ## Convert OpenCV message type to a ROS image
         filtered_image = self.bridge.cv2_to_imgmsg(cv2.cvtColor(result, cv2.COLOR_HSV2RGB), 'rgb8')
 
-        ## Update the img_msg with the filtered data. Then publish that image
+        ## Update `img_msg.data` with the filtered data. Then publish that image
         img_msg.data = filtered_image.data
         self.publisher.publish(img_msg)
 
-        ## Convert ROS image type to OpenCV message type
+        ## Convert ROS depth image type to OpenCV message type
         depth_cv2 = self.bridge.imgmsg_to_cv2(depth_msg, "16UC1")
 
         ## Perform bitwise on the depthmap image arrays using the mask
