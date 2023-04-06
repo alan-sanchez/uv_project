@@ -1,7 +1,7 @@
 <launch>
 
 <!-- Start image filter node -->
-  <node pkg="uv_project" type="image_filter.py" name="image_filter" output="screen"/>
+  <!-- <node pkg="uv_project" type="image_filter.py" name="image_filter" output="screen"/> -->
 
 <!-- Launch the depth_image_proc nodelet manager -->
   <node pkg="nodelet" type="nodelet" name="nodelet_manager" args="manager" />
@@ -53,7 +53,7 @@
    <!-- fixed map frame (set to 'map' if SLAM or localization running!) -->
    <param name="base_frame_id" type="string" value="base_link" />
    <!-- maximum range to integrate (speedup!) -->
-   <param name="sensor_model/max_range" value="1.0" />
+   <param name="sensor_model/max_range" value="2.0" />
    
    <!-- ground attributes -->
    <!-- <param name="ground_filter/distance"       value="0.04" />

@@ -56,7 +56,7 @@ class Broadcaster():
         ## Set pose values to transform
         self.uv_light.transform.translation.x =  0
         self.uv_light.transform.translation.y =  0
-        self.uv_light.transform.translation.z = -0.095
+        self.uv_light.transform.translation.z = -0.08
         q = tf.transformations.quaternion_from_euler(0,0,0)
         self.uv_light.transform.rotation.x = q[0]
         self.uv_light.transform.rotation.y = q[1]

@@ -6,6 +6,7 @@ import numpy as np
 import math
 import octomap
 import message_filters
+import csv
 
 ## Import message types and other python libraries
 from sensor_msgs.msg import PointCloud
@@ -91,7 +92,7 @@ class AccumulationMap(object):
         self.markerArray = MarkerArray()
 
         ## Create sensor array region 
-        self.region = [[0.725, 0.51], [0.745, 0.51], [0.745, -0.51], [0.725, -0.51]]
+        self.region = [[0.71, 0.55], [0.76, 0.55], [0.76, -0.55], [0.71, -0.55]]
         self.line = geometry.LineString(self.region)
         self.polygon = geometry.Polygon(self.line)
 
@@ -102,6 +103,7 @@ class AccumulationMap(object):
         :param self: The self reference.
         :param msg: The PointCloud message type.
         """
+        rospy.sleep(0.1)
         if str_msg.data == "start":
             ## Clear previous octree, markers, and dictrionaries
             self.octree.clear()
@@ -131,7 +133,15 @@ class AccumulationMap(object):
         elif str_msg.data == "stop": 
             ## Set command
             self.command = str_msg.data
-            print(self.acc_map_dict)
+            # print(self.acc_map_dict)
+            ## open file for writing, "w" is writing
+            w = csv.writer(open("output.csv", "w"))
+
+            ## loop over dictionary keys and values
+            for key, val in self.acc_map_dict.items():
+                key_list = list(key)
+                ## write every key and value to file
+                w.writerow([key[0],key[1],key[2],val])
 
 
     def callback_oct_center_pcl(self,pcl_msg):
@@ -168,7 +178,7 @@ class AccumulationMap(object):
                 continue
 
             ## Calculate the angle (radians) between the z-axis vector and 
-            ## gripper point coordinates, `tip`
+            ## uv flashlight point coordinates, `uv_light_coord`
             ray_length = np.linalg.norm([uv_light_coord.x,uv_light_coord.y,uv_light_coord.z])        
             numerator = np.dot(self.grip_vec, [uv_light_coord.x,uv_light_coord.y,uv_light_coord.z])
             denominator = self.mag_grip_vec * ray_length
@@ -183,7 +193,7 @@ class AccumulationMap(object):
                     ## compute the UV dose for the conical `rad` value
                     radius = 0.3 * math.tan(rad)
                     ir = self.eqn_model(radius) * 10 # multiply by 10 to convert from mW/cm^2 to W/m^2
-                    dist_ratio = (0.3**2)/(ray_length**2)
+                    dist_ratio = (0.3**2)/(ray_length**2) # Inverse sqaure law ratio
                     dose = dist_ratio * self.time_exposure * ir
 
                     ## Pull coordinates of cell key
@@ -213,10 +223,14 @@ class AccumulationMap(object):
                 self.marker.id = self.cube_id_dict[pose_key]
             
             ## Update the color id based on UV values
-            if self.acc_map_dict[pose_key] < self.required_dose:
-                self.marker.color = ColorRGBA(1,0,0, 0.5)
+            if self.acc_map_dict[pose_key] < 0.25 * self.required_dose:
+                self.marker.color = ColorRGBA(1,   0,  0, 0.25)
+            elif self.acc_map_dict[pose_key] < 0.5 * self.required_dose:
+                self.marker.color = ColorRGBA(1, 0.5,  0, 0.50)
+            elif self.acc_map_dict[pose_key] < 0.75 * self.required_dose:
+                self.marker.color = ColorRGBA(1, 1,  0, 0.75)
             else:
-                self.marker.color = ColorRGBA(0,1,0,1)
+                self.marker.color = ColorRGBA(  0, 1,  0, 1)
 
             ## Set point to marker
             self.marker.points = [Point(pose_key[0], pose_key[1], pose_key[2]),]

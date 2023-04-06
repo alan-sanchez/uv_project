@@ -54,20 +54,20 @@ class ExecutePath(object):
         self.planning_scene.addBox("keepout", 0.25, 0.5, 0.09, 0.15, 0.0, 0.375)
 
         ##
-        self.velocity = 0.28 # 0.19 #0.571
+        self.velocity = 0.278 # 0.19 #0.571
  
     def plan_cartesian_path(self):
         """
         
         """
         ## Cartesian waypoints
-        waypoints = [Pose(Point(0.735,  0.60, 1.2),Quaternion(0.131, 0, 0, 0.991)),
-                     Pose(Point(0.735,  0.50, 1.2),Quaternion(0.000, 0.0, 0, 1)),
-                     Pose(Point(0.735,  0.40, 1.2),Quaternion(0.000, 0.0, 0, 1)),
-                     Pose(Point(0.735,  0.25, 1.2),Quaternion(0.000, 0.0, 0, 1)),
-                     Pose(Point(0.735,  0.00, 1.2),Quaternion(0.000, 0.0, 0, 1)),
-                     Pose(Point(0.735, -0.25, 1.2),Quaternion(0.000, 0.0, 0, 1)),
-                     Pose(Point(0.735, -0.50, 1.2),Quaternion(0.000, 0.0, 0, 1)),
+        waypoints = [Pose(Point(0.735,  0.60, 1.20),Quaternion(0.131, 0, 0, 0.991)),
+                     Pose(Point(0.735,  0.50, 1.20),Quaternion(0.000, 0.0, 0, 1)),
+                     Pose(Point(0.735,  0.40, 1.20),Quaternion(0.000, 0.0, 0, 1)),
+                     Pose(Point(0.735,  0.25, 1.20),Quaternion(0.000, 0.0, 0, 1)),
+                     Pose(Point(0.735,  0.00, 1.20),Quaternion(0.000, 0.0, 0, 1)),
+                     Pose(Point(0.735, -0.25, 1.20),Quaternion(0.000, 0.0, 0, 1)),
+                     Pose(Point(0.735, -0.50, 1.20),Quaternion(0.000, 0.0, 0, 1)),
                      Pose(Point(0.735, -0.60, 1.2),Quaternion(-0.131, 0, 0, 0.991)),
                      ]
 

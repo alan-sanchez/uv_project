@@ -39,7 +39,7 @@ class ImageFilter():
         # self.upper_col = np.array([174, 255, 255])
 
         ## set the lower and upper bounds for the desired hue
-        self.lower_col = np.array([0, 2, 150])
+        self.lower_col = np.array([0, 0, 180])
         self.upper_col = np.array([180, 255, 255])
 
         ## Instantiate a `CvBridge` object

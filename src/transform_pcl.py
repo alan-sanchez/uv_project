@@ -22,8 +22,8 @@ class TransformPCL(object):
         :param self: The self reference.
         """
         ## Initialize Subscribers
-        self.combined_pcl2_sub   = rospy.Subscriber('/pcl_depthmap',                PointCloud2, self.callback_combined_pcl2,   queue_size=1)
-        self.oct_center_pcl2_sub = rospy.Subscriber('/octomap_point_cloud_centers', PointCloud2, self.callback_oct_center_pcl2, queue_size=1)
+        self.combined_pcl2_sub   = rospy.Subscriber('/pcl_depthmap',                PointCloud2, self.callback_combined_pcl2,   queue_size=10)
+        self.oct_center_pcl2_sub = rospy.Subscriber('/octomap_point_cloud_centers', PointCloud2, self.callback_oct_center_pcl2, queue_size=10)
         self.start_sub           = rospy.Subscriber('/command',                     String,      self.callback_command)
         
         ## Initialize PointCloud Publishers
@@ -99,11 +99,13 @@ class TransformPCL(object):
             # count = 0
             for data in pc2.read_points(pcl2_msg, skip_nans=True):
                 pcl_cloud.points.append(Point32(data[0],data[1],data[2]))
-                # intensity_channel.values.append(255)
-                # print(data)
+                # print(type(data[0]))
+                # print(data[0])
+                # if str(data[0]) == 'nan':
+                #     count+=1
             
             # print(count)
-            # print(pcl_cloud.points)
+            # print(len(pcl_cloud.points))
 
             # pcl_cloud.channels = [intensity_channel]
 
