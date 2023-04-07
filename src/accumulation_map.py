@@ -92,7 +92,7 @@ class AccumulationMap(object):
         self.markerArray = MarkerArray()
 
         ## Create sensor array region 
-        self.region = [[0.71, 0.55], [0.76, 0.55], [0.76, -0.55], [0.71, -0.55]]
+        self.region = [[0.725, 0.55], [0.74, 0.55], [0.74, -0.55], [0.725, -0.55]]
         self.line = geometry.LineString(self.region)
         self.polygon = geometry.Polygon(self.line)
 
@@ -103,7 +103,7 @@ class AccumulationMap(object):
         :param self: The self reference.
         :param msg: The PointCloud message type.
         """
-        rospy.sleep(0.1)
+        rospy.sleep(0.5)
         if str_msg.data == "start":
             ## Clear previous octree, markers, and dictrionaries
             self.octree.clear()
@@ -194,7 +194,8 @@ class AccumulationMap(object):
                     radius = 0.3 * math.tan(rad)
                     ir = self.eqn_model(radius) * 10 # multiply by 10 to convert from mW/cm^2 to W/m^2
                     dist_ratio = (0.3**2)/(ray_length**2) # Inverse sqaure law ratio
-                    dose = dist_ratio * self.time_exposure * ir
+                    resolution_ratio = 0.01 / self.resolution # Resolution of sensor arrays divided by resolution of octree
+                    dose = dist_ratio * self.time_exposure * ir * resolution_ratio
 
                     ## Pull coordinates of cell key
                     pos = tuple(self.octree.keyToCoord(key))
@@ -224,11 +225,11 @@ class AccumulationMap(object):
             
             ## Update the color id based on UV values
             if self.acc_map_dict[pose_key] < 0.25 * self.required_dose:
-                self.marker.color = ColorRGBA(1,   0,  0, 0.25)
+                self.marker.color = ColorRGBA(1,   0,  0, 0.5)
             elif self.acc_map_dict[pose_key] < 0.5 * self.required_dose:
-                self.marker.color = ColorRGBA(1, 0.5,  0, 0.50)
+                self.marker.color = ColorRGBA(1, 0.5,  0, 0.65)
             elif self.acc_map_dict[pose_key] < 0.75 * self.required_dose:
-                self.marker.color = ColorRGBA(1, 1,  0, 0.75)
+                self.marker.color = ColorRGBA(1, 1,  0, 0.85)
             else:
                 self.marker.color = ColorRGBA(  0, 1,  0, 1)
 
