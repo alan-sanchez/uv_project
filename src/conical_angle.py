@@ -22,7 +22,7 @@ class IrradianceVectors(object):
         :param self: The self reference.
         """
         ## Initialize Subscriber
-        self.combined_pcl2_sub = rospy.Subscriber('/combined_filtered_image_and_depthmap', PointCloud2, self.callback_pcl2)
+        self.combined_pcl2_sub = rospy.Subscriber('/pcl_depthmap', PointCloud2, self.callback_pcl2)
         
         ## Instantiate a `tf.TransformListener` object
         self.listener = tf.TransformListener()
