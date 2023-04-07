@@ -1,7 +1,7 @@
 <launch>
 
 <!-- Start image filter node -->
-  <!-- <node pkg="uv_project" type="image_filter.py" name="image_filter" output="screen"/> -->
+  <node pkg="uv_project" type="image_filter.py" name="image_filter" output="screen"/>
 
 <!-- Launch the depth_image_proc nodelet manager -->
   <node pkg="nodelet" type="nodelet" name="nodelet_manager" args="manager" />
