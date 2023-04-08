@@ -45,8 +45,11 @@ class AccumulationMap(object):
         self.oct_center_pcl2 = None
 
         ## Initialize OcTree function with a resolution of 0.05 meters
-        self.resolution = 0.05
+        self.resolution = rospy.get_param('resolution')#0.05
         self.octree = octomap.OcTree(self.resolution)
+
+        self.measuring_ratio = (0.01/self.resolution)**2 # 0.01 is the side length of UV sensor
+        print(self.measuring_ratio)
 
         ## vector the points straight down in the z direction from `uv_light_link` tf
         self.grip_vec = [0,0,-.3]
@@ -103,7 +106,7 @@ class AccumulationMap(object):
         :param self: The self reference.
         :param msg: The PointCloud message type.
         """
-        rospy.sleep(0.5)
+        # rospy.sleep(0.1)
         if str_msg.data == "start":
             ## Clear previous octree, markers, and dictrionaries
             self.octree.clear()
@@ -132,6 +135,7 @@ class AccumulationMap(object):
 
         elif str_msg.data == "stop": 
             ## Set command
+            print('made it here')
             self.command = str_msg.data
             # print(self.acc_map_dict)
             ## open file for writing, "w" is writing
@@ -142,6 +146,7 @@ class AccumulationMap(object):
                 key_list = list(key)
                 ## write every key and value to file
                 w.writerow([key[0],key[1],key[2],val])
+                print([key[0],key[1],key[2],val])
 
 
     def callback_oct_center_pcl(self,pcl_msg):
@@ -194,8 +199,7 @@ class AccumulationMap(object):
                     radius = 0.3 * math.tan(rad)
                     ir = self.eqn_model(radius) * 10 # multiply by 10 to convert from mW/cm^2 to W/m^2
                     dist_ratio = (0.3**2)/(ray_length**2) # Inverse sqaure law ratio
-                    resolution_ratio = 0.01 / self.resolution # Resolution of sensor arrays divided by resolution of octree
-                    dose = dist_ratio * self.time_exposure * ir * resolution_ratio
+                    dose = dist_ratio * self.time_exposure * ir
 
                     ## Pull coordinates of cell key
                     pos = tuple(self.octree.keyToCoord(key))
@@ -207,7 +211,7 @@ class AccumulationMap(object):
 
         ## Create marker array of cells
         for pose_key in temp_dict:
-            dose_value = sum(temp_dict[pose_key])/len(temp_dict[pose_key])
+            dose_value = sum(temp_dict[pose_key])*self.measuring_ratio
 
             ## Update accumulation map dictionary
             if pose_key in self.acc_map_dict:
