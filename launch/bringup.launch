@@ -1,0 +1,17 @@
+<launch>
+    <!-- Set resolution of octomap -->
+    <arg name="resolution"    default="0.05"/>
+    <param name="resolution"  type="double" value="$(arg resolution)"/>
+
+    <!-- Launch move group -->
+    <include file="$(find uv_project)/launch/move_group.launch" />
+
+    <!-- Launch Rviz setup-->
+    <include file="$(find uv_project)/launch/rviz_setup.launch" />
+
+    <!-- Launch primesense (head camera) octomap settings -->
+    <include file="$(find uv_project)/launch/octomap_primesense_setup.launch">
+        <arg name="resolution" value="$(arg resolution)" />
+    </include>
+ 
+</launch>
