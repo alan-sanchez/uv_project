@@ -54,34 +54,42 @@ class ExecutePath(object):
         self.planning_scene.addBox("keepout", 0.25, 0.5, 0.09, 0.15, 0.0, 0.375)
 
         ##
-        self.velocity = 0.278 # 0.19 #0.571
+        self.velocity = 0.18 #0.278 #0.19 #0.571
  
     def plan_cartesian_path(self):
         """
         
         """
         ## Cartesian waypoints
-        waypoints = [Pose(Point(0.735,  0.60, 1.20),Quaternion(0.131, 0, 0, 0.991)),
-                     Pose(Point(0.735,  0.50, 1.20),Quaternion(0.000, 0.0, 0, 1)),
-                     Pose(Point(0.735,  0.40, 1.20),Quaternion(0.000, 0.0, 0, 1)),
-                     Pose(Point(0.735,  0.25, 1.20),Quaternion(0.000, 0.0, 0, 1)),
-                     Pose(Point(0.735,  0.00, 1.20),Quaternion(0.000, 0.0, 0, 1)),
-                     Pose(Point(0.735, -0.25, 1.20),Quaternion(0.000, 0.0, 0, 1)),
-                     Pose(Point(0.735, -0.50, 1.20),Quaternion(0.000, 0.0, 0, 1)),
-                     Pose(Point(0.735, -0.60, 1.2),Quaternion(-0.131, 0, 0, 0.991)),
+        waypoints = [Pose(Point(0.735,  0.60, 1.12),Quaternion(0.000, 0.0, 0, 1)),#0.131, 0, 0, 0.991)),
+                     Pose(Point(0.735,  0.50, 1.12),Quaternion(0.000, 0.0, 0, 1)),
+                     Pose(Point(0.735,  0.40, 1.12),Quaternion(0.000, 0.0, 0, 1)),
+                     Pose(Point(0.735,  0.25, 1.12),Quaternion(0.000, 0.0, 0, 1)),
+                     Pose(Point(0.735,  0.00, 1.12),Quaternion(0.000, 0.0, 0, 1)),
+                     Pose(Point(0.735, -0.25, 1.12),Quaternion(0.000, 0.0, 0, 1)),
+                     Pose(Point(0.735, -0.50, 1.12),Quaternion(0.000, 0.0, 0, 1)),
+                     Pose(Point(0.735, -0.60, 1.12),Quaternion(0.000, 0.0, 0, 1)),#-0.131, 0, 0, 0.991)),
                      ]
 
-        # waypoints = [Pose(Point(0.735,  0.50, 1.2),Quaternion(0,0,0,1))]
+        # waypoints = [Pose(Point(0.735,  -0.50, 1.17),Quaternion(0,0,0,1))]
 
-        (plan, fraction) = self.group.compute_cartesian_path(waypoints, # waypoints to follow
-                                                             0.1,       # eef_step
-                                                             0.00)      # jump_threshold
-
+        fraction = 0
+        count = 0
+        while fraction < 0.9:
+            (plan, fraction) = self.group.compute_cartesian_path(waypoints, # waypoints to follow
+                                                             0.1,           # eef_step
+                                                             0.00)          # jump_threshold
+            count +=1
+            if count > 10:
+                break
+        
         plan = self.group.retime_trajectory(self.robot.get_current_state(),
                                             plan,
                                             velocity_scaling_factor = self.velocity,
                                             )
         return plan
+
+     
 
     def execute_plan(self, plan):
         """
@@ -130,7 +138,9 @@ if __name__ == '__main__':
     ## Instantiate a `ExecutePath` object
     motion = ExecutePath()
 
-    rospy.loginfo("Moving arm to init position.")
+    print("")
+    print("====== Press 'Enter' to move arm to initial position =======")
+    raw_input()
     motion.init_pose()
 
     rate = rospy.Rate(10)

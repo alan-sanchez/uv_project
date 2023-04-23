@@ -60,17 +60,13 @@ class ExecutePath(object):
         """
         
         """
-        ## Cartesian waypoints
-        waypoints = [Pose(Point(0.786,  0.409,  0.988),Quaternion(-0.57, -0.04, -0.01,  0.82)),
-                     Pose(Point(0.786,  0.396,  1.081),Quaternion(-0.57, -0.04, -0.01,  0.82)),
-                     Pose(Point(0.780,  0.366,  1.208),Quaternion(-0.51, -0.02,  0.01,  0.86)),
-                     Pose(Point(0.537,  0.235,  1.186),Quaternion( 0.17,  0.49,  0.34, -0.78)),
-                     Pose(Point(0.52 ,  0.235,  1.045),Quaternion( 0.17,  0.49,  0.34, -0.79)),
-                     Pose(Point(0.52 , -0.235,  1.045),Quaternion(-0.17, 0.49, -0.34, -0.79)),
-                    #  Pose(Point(0.784, -0.366,  1.208),Quaternion(-0.51,  0.02,  0.01, -0.86)),
-                    #  Pose(Point(0.786, 0.396, 1.081),Quaternion(-0.57, -0.04, -0.01, 0.82)),
-                    #  Pose(Point(0.786, 0.409, 0.988),Quaternion(-0.57, -0.04, -0.01, 0.82)),
-                     ]
+        ## Cartesian waypoints       
+        waypoints = [Pose(Point(0.78,  0.051, 1.3),Quaternion(0.00, -0.00, -0.00,  1.00)),
+                     Pose(Point(0.81, -0.051, 1.4),Quaternion(0.00, -0.00, -0.00,  1.00)),
+                     Pose(Point(0.78, -0.128, 1.3),Quaternion(0.00, -0.00, -0.00,  1.00)),
+                     Pose(Point(0.72, -0.128, 1.3),Quaternion(0.00, -0.00, -0.00,  1.00)),
+                     Pose(Point(0.72,  0.051, 1.3),Quaternion(0.00, -0.00, -0.00,  1.00)),
+                    ]
 
         # waypoints = [Pose(Point(0.52 ,  0.235,  1.045),Quaternion(-0.17,  0.49,  0.34, -0.79))]
 
