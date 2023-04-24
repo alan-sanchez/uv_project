@@ -22,30 +22,15 @@ class TransformPCL(object):
         :param self: The self reference.
         """
         ## Initialize Subscribers
-        self.combined_pcl2_sub   = rospy.Subscriber('/pcl_depthmap',                PointCloud2, self.callback_combined_pcl2,   queue_size=10)
-        self.oct_center_pcl2_sub = rospy.Subscriber('/octomap_point_cloud_centers', PointCloud2, self.callback_oct_center_pcl2, queue_size=10)
+        # self.combined_pcl2_sub   = rospy.Subscriber('/pcl_depthmap',                PointCloud2, self.callback_combined_pcl2,   queue_size=10)
+        self.combined_pcl2_sub   = rospy.Subscriber('/camera/depth_registered/points',PointCloud2, self.callback_combined_pcl2,   queue_size=10)
         
         ## Initialize PointCloud Publishers
         self.baselink_pcl_pub = rospy.Publisher("/baselink_reference_pcl", PointCloud, queue_size=5)
         self.gripper_pcl_pub  = rospy.Publisher("/gripper_reference_pcl",  PointCloud, queue_size=5)
-        self.oct_centers_pub  = rospy.Publisher("/octomap_centers_pcl",    PointCloud, queue_size=5)
         
         ## Initialize transform listener
         self.listener = tf.TransformListener()
-
-        ## Initialize `self.oct_center_pcl2` as None. The data from the center cells
-        ## of the octomap will be stored here
-        self.oct_center_pcl2 = None
-
-    def callback_oct_center_pcl2(self, pcl2_msg):
-        """
-        A function that stores the PointCloud2 message types which represents 
-        the center of the cells from the octomap.
-        :param self: The self reference.
-        :param pcl2_msg: The PointCloud2 message.
-        """
-        self.oct_center_pcl2 = pcl2_msg
-        
 
     def callback_combined_pcl2(self, pcl2_msg):
         """
@@ -58,13 +43,10 @@ class TransformPCL(object):
         ## Initialize a new point cloud message type to store position data.
         pcl_cloud = PointCloud()
         pcl_cloud.header = pcl2_msg.header
-        pcl_cloud.header.stamp=rospy.Time.now()
-
     
         for data in pc2.read_points(pcl2_msg, skip_nans=True):
             pcl_cloud.points.append(Point32(data[0],data[1],data[2]))
             
-
         ## Transform the pointcloud message to reference the `base_link`
         base_cloud = self.transform_pointcloud(pcl_cloud, "/base_link")
         self.baselink_pcl_pub.publish(base_cloud)
@@ -82,7 +64,6 @@ class TransformPCL(object):
 
         :returns new_cloud: PointCloud message.
         """
-
         pcl_cloud.header.stamp=rospy.Time.now()
         while not rospy.is_shutdown():
             try:
@@ -95,7 +76,7 @@ class TransformPCL(object):
 
 if __name__=="__main__":
     ## Initialize transform_pcl node
-    rospy.init_node('transform_pcl',anonymous=True)
+    rospy.init_node('transform_pcl_viewer',anonymous=True)
 
     ## Instantiate the IrradianceVectors class
     TransformPCL()
