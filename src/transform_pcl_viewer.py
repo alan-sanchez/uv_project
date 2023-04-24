@@ -6,7 +6,7 @@ import tf
 import sensor_msgs.point_cloud2 as pc2
 
 ## Import message types and other python libraries
-from sensor_msgs.msg import PointCloud2, PointCloud, ChannelFloat32
+from sensor_msgs.msg import PointCloud2, PointCloud
 from geometry_msgs.msg import Point32
 from std_msgs.msg import String
 
@@ -22,8 +22,8 @@ class TransformPCL(object):
         :param self: The self reference.
         """
         ## Initialize Subscribers
-        # self.combined_pcl2_sub   = rospy.Subscriber('/pcl_depthmap',                PointCloud2, self.callback_combined_pcl2,   queue_size=10)
-        self.combined_pcl2_sub   = rospy.Subscriber('/camera/depth_registered/points',PointCloud2, self.callback_combined_pcl2,   queue_size=10)
+        self.combined_pcl2_sub   = rospy.Subscriber('/pcl_depthmap',                PointCloud2, self.callback_combined_pcl2,   queue_size=10)
+        # self.combined_pcl2_sub   = rospy.Subscriber('/camera/depth_registered/points',PointCloud2, self.callback_combined_pcl2,   queue_size=10)
         
         ## Initialize PointCloud Publishers
         self.baselink_pcl_pub = rospy.Publisher("/baselink_reference_pcl", PointCloud, queue_size=5)
