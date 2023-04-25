@@ -8,7 +8,6 @@ import sensor_msgs.point_cloud2 as pc2
 ## Import message types and other python libraries
 from sensor_msgs.msg import PointCloud2, PointCloud
 from geometry_msgs.msg import Point32
-from std_msgs.msg import String
 
 
 class TransformPCL(object):
@@ -22,12 +21,12 @@ class TransformPCL(object):
         :param self: The self reference.
         """
         ## Initialize Subscribers
-        self.combined_pcl2_sub   = rospy.Subscriber('/pcl_depthmap',                PointCloud2, self.callback_combined_pcl2,   queue_size=10)
-        # self.combined_pcl2_sub   = rospy.Subscriber('/camera/depth_registered/points',PointCloud2, self.callback_combined_pcl2,   queue_size=10)
+        self.combined_pcl2_sub   = rospy.Subscriber('/filtered_pcl2', PointCloud2, self.callback_combined_pcl2,   queue_size=1)
+        # self.combined_pcl2_sub   = rospy.Subscriber('/camera/depth_registered/points',PointCloud2, self.callback_combined_pcl2,   queue_size=1)
         
         ## Initialize PointCloud Publishers
-        self.baselink_pcl_pub = rospy.Publisher("/baselink_reference_pcl", PointCloud, queue_size=5)
-        self.gripper_pcl_pub  = rospy.Publisher("/gripper_reference_pcl",  PointCloud, queue_size=5)
+        self.baselink_pcl_pub = rospy.Publisher("/baselink_reference_pcl", PointCloud, queue_size=1)
+        self.gripper_pcl_pub  = rospy.Publisher("/gripper_reference_pcl",  PointCloud, queue_size=1)
         
         ## Initialize transform listener
         self.listener = tf.TransformListener()
@@ -44,16 +43,24 @@ class TransformPCL(object):
         pcl_cloud = PointCloud()
         pcl_cloud.header = pcl2_msg.header
     
+        start = rospy.get_time()
         for data in pc2.read_points(pcl2_msg, skip_nans=True):
             pcl_cloud.points.append(Point32(data[0],data[1],data[2]))
-            
+        time_diff = rospy.get_time() - start  
+
+        start = rospy.get_time()
         ## Transform the pointcloud message to reference the `base_link`
         base_cloud = self.transform_pointcloud(pcl_cloud, "/base_link")
         self.baselink_pcl_pub.publish(base_cloud)
+        time_diff2 = rospy.get_time() - start   
 
+        start = rospy.get_time()
         ## Transform the pointcloud message to reference the `uv_light_link`
-        transformed_cloud = self.transform_pointcloud(pcl_cloud,"/uv_light_link")
-        self.gripper_pcl_pub.publish(transformed_cloud)
+        # transformed_cloud = self.transform_pointcloud(pcl_cloud,"/uv_light_link")
+        self.gripper_pcl_pub.publish(base_cloud)
+        time_diff3 = rospy.get_time()  - start  
+
+        # print(time_diff, time_diff2, time_diff3)
 
     def transform_pointcloud(self,pcl_cloud, target_frame):
         """
