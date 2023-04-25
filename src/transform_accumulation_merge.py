@@ -7,12 +7,13 @@ import sensor_msgs.point_cloud2 as pc2
 import octomap
 import numpy as np
 import math
+import csv 
 
 ## Import message types and other python libraries
 from sensor_msgs.msg import PointCloud2, PointCloud
 from visualization_msgs.msg import Marker, MarkerArray
-from geometry_msgs.msg import Point32
-from std_msgs.msg import String, Header, String, ColorRGBA
+from geometry_msgs.msg import Point32, Point
+from std_msgs.msg import String, Header, ColorRGBA
 from best_fit import fit
 from shapely import geometry
 
@@ -32,7 +33,9 @@ class TransformPCL(object):
         self.oct_center_pcl2_sub = rospy.Subscriber('/octomap_point_cloud_centers', PointCloud2, self.callback_oct_center_pcl2, queue_size=10)
         self.start_sub           = rospy.Subscriber('/command',                     String,      self.callback_command)
         
-        ## Initialize Publisher
+        ## Initialize PointCloud Publishers
+        # self.baselink_pcl_pub = rospy.Publisher("/baselink_reference_pcl", PointCloud, queue_size=5)
+        # self.gripper_pcl_pub  = rospy.Publisher("/gripper_reference_pcl",  PointCloud, queue_size=5)
         self.MarkerArray_publisher = rospy.Publisher('/accumulation_map', MarkerArray, queue_size=10)
         
         ## Initialize transform listener
@@ -95,14 +98,11 @@ class TransformPCL(object):
         self.markerArray = MarkerArray()
 
         ## Create sensor array region 
-        self.region = [[0.72, 0.55], [0.74, 0.55], [0.74, -0.55], [0.72, -0.55]]   # Sensor Array
-        #self.region = [[0.70, 0.07], [0.90, 0.07], [0.90, -.113], [0.70, -.113]]  # Cone
+        #self.region = [[0.72, 0.55], [0.74, 0.55], [0.74, -0.55], [0.72, -0.55]]   # Sensor Array
+        self.region = [[0.70, 0.07], [0.90, 0.07], [0.90, -.113], [0.70, -.113]]  # Cone
         #self.region = [[0.75, 0.05], [0.90, 0.05], [0.90, -0.09], [0.75, -0.09]]  # Mug
         self.line = geometry.LineString(self.region)
         self.polygon = geometry.Polygon(self.line)
-
-        self.item = True
-
 
     def callback_oct_center_pcl2(self, pcl2_msg):
         """
@@ -120,6 +120,16 @@ class TransformPCL(object):
         :param str_msg: A String message type.
         """
         if str_msg.data == "start":
+            ## Clear previous octree, markers, and dictrionaries
+            # self.octree.clear()
+            self.acc_map_dict = dict()
+            self.cube_id_dict = dict()
+            self.marker.action = Marker.DELETEALL
+            self.markerArray.markers.append(self.marker)
+            self.MarkerArray_publisher.publish(self.markerArray)
+            self.marker.action = Marker.ADD
+            rospy.sleep(0.2)
+
             ## Initialize a new point cloud message type to store position data.
             pcl_cloud = PointCloud()
             pcl_cloud.header = self.oct_center_pcl2.header
@@ -130,16 +140,16 @@ class TransformPCL(object):
                 pcl_cloud.points.append(Point32(data[0],data[1],data[2]))
                
             ## Transform the pointcloud message to reference the `base_link`
-            base_link_pcl = self.transform_pointcloud(pcl_cloud, "/base_link")
+            base_link_center_pcl = self.transform_pointcloud(pcl_cloud, "/base_link")
 
             ## Parse the filtered cloud's points as a np.array. This is required
             ## to pass as an agrument in the `insertPointCloud()` method.
-            arr = np.empty(shape=[len(base_link_pcl),3])
+            arr = np.empty(shape=[len(base_link_center_pcl.points),3])
             
-            for i in range(len(self.oct_center_pcl.points)):
-                arr[i] = [base_link_pcl[i].x,
-                                      base_link_pcl[i].y,
-                                      base_link_pcl[i].z]
+            for i in range(len(base_link_center_pcl.points)):
+                            arr[i] = [base_link_center_pcl.points[i].x,
+                                      base_link_center_pcl.points[i].y,
+                                      base_link_center_pcl.points[i].z]
 
             ## Insert a 3D scan into the the tree
             self.octree.insertPointCloud(pointcloud = arr, origin = np.array([0, 0, 0], dtype=float)) # self.octree.writeBinary(b"before.bt")
@@ -148,7 +158,7 @@ class TransformPCL(object):
             self.command = str_msg.data      
 
         elif str_msg.data == "stop": 
-            rospy.sleep(20.0)
+            rospy.sleep(5.0)
             ## Set command
             self.command = str_msg.data
            
@@ -184,6 +194,7 @@ class TransformPCL(object):
 
             ## Transform the pointcloud message to reference the `base_link`
             baselink_pcl = self.transform_pointcloud(pcl_cloud, "/base_link")
+            # self.baselink_pcl_pub.publish(baselink_pcl)
 
             ## Transform the pointcloud message to reference the `uv_light_link`
             uv_light_pcl = self.transform_pointcloud(pcl_cloud, "/uv_light_link")
@@ -211,9 +222,6 @@ class TransformPCL(object):
                 denominator = self.mag_grip_vec * ray_length
                 rad = np.arccos(numerator/denominator)
 
-                # print(rad)
-                # print(ray_length)
-            
                 if rad < self.bound:
                     chk, key = self.octree.coordToKeyChecked(np.array([base_coord.x, base_coord.y, base_coord.z]))
                     # print(chk)
@@ -238,12 +246,10 @@ class TransformPCL(object):
 
             ## Create marker array of cells
             for pose_key in temp_dict:
-                # dose_2 = sum(temp_dict[pose_key])*self.measuring_ratio
-                # dose_2 = sum(temp_dict[pose_key])/len(temp_dict[pose_key])
+                # Calculate Dose
                 dose_value = max(temp_dict[pose_key])
                 # hits = len(temp_dict[pose_key])
 
-                # print(dose_value, dose_2, hits)
                 ## Update accumulation map dictionary
                 if pose_key in self.acc_map_dict:
                     self.acc_map_dict[pose_key] += dose_value
@@ -289,7 +295,6 @@ class TransformPCL(object):
 
         :returns new_cloud: PointCloud message.
         """
-
         pcl_cloud.header.stamp=rospy.Time.now()
         while not rospy.is_shutdown():
             try:
