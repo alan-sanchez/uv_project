@@ -49,7 +49,6 @@ class AccumulationMap(object):
         self.octree = octomap.OcTree(self.resolution)
 
         self.measuring_ratio = (0.01/self.resolution)**2 # 0.01 is the side length of UV sensor
-        print(self.measuring_ratio)
 
         ## vector the points straight down in the z direction from `uv_light_link` tf
         self.grip_vec = [0,0,-.3]
@@ -60,7 +59,7 @@ class AccumulationMap(object):
 
         ## The required UV Dose for a UV rate constant of 0.0867 m^2/J
         ## at 99% disinfection rate is, 53.10 (J/m^2)
-        self.required_dose = 53.10
+        self.required_dose = 151.66 #53.10 #151.68
 
         ## Command that begins and stops accumulation map and markers
         self.command = None
@@ -95,9 +94,13 @@ class AccumulationMap(object):
         self.markerArray = MarkerArray()
 
         ## Create sensor array region 
-        self.region = [[0.725, 0.55], [0.74, 0.55], [0.74, -0.55], [0.725, -0.55]]
+        self.region = [[0.72, 0.55], [0.74, 0.55], [0.74, -0.55], [0.72, -0.55]]    # Sensor Array
+        #self.region = [[0.70, 0.07], [0.90, 0.07], [0.90, -.113], [0.70, -.113]]  # Cone
+        #self.region = [[0.75, 0.05], [0.90, 0.05], [0.90, -0.09], [0.75, -0.09]]  # Mug
         self.line = geometry.LineString(self.region)
         self.polygon = geometry.Polygon(self.line)
+
+        self.item = True                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
 
 
     def callback_command(self, str_msg):
@@ -106,10 +109,10 @@ class AccumulationMap(object):
         :param self: The self reference.
         :param msg: The PointCloud message type.
         """
-        # rospy.sleep(0.1)
+        rospy.sleep(1)
         if str_msg.data == "start":
             ## Clear previous octree, markers, and dictrionaries
-            self.octree.clear()
+            # self.octree.clear()
             self.acc_map_dict = dict()
             self.cube_id_dict = dict()
             self.marker.action = Marker.DELETEALL
@@ -134,8 +137,10 @@ class AccumulationMap(object):
             self.command = str_msg.data
 
         elif str_msg.data == "stop": 
+            print("made it here")
+            rospy.sleep(20.0)
             ## Set command
-            print('made it here')
+            # print('made it here')
             self.command = str_msg.data
             # print(self.acc_map_dict)
             ## open file for writing, "w" is writing
@@ -146,7 +151,7 @@ class AccumulationMap(object):
                 key_list = list(key)
                 ## write every key and value to file
                 w.writerow([key[0],key[1],key[2],val])
-                print([key[0],key[1],key[2],val])
+                # print([key[0],key[1],key[2],val])
 
 
     def callback_oct_center_pcl(self,pcl_msg):
@@ -190,6 +195,7 @@ class AccumulationMap(object):
             rad = np.arccos(numerator/denominator)
 
             # print(rad)
+            # print(ray_length)
            
             if rad < self.bound:
                 chk, key = self.octree.coordToKeyChecked(np.array([base_coord.x, base_coord.y, base_coord.z]))
@@ -199,10 +205,14 @@ class AccumulationMap(object):
                     radius = 0.3 * math.tan(rad)
                     ir = self.eqn_model(radius) * 10 # multiply by 10 to convert from mW/cm^2 to W/m^2
                     dist_ratio = (0.3**2)/(ray_length**2) # Inverse sqaure law ratio
-                    dose = dist_ratio * self.time_exposure * ir
+                    dose = dist_ratio * self.time_exposure * ir 
 
                     ## Pull coordinates of cell key
                     pos = tuple(self.octree.keyToCoord(key))
+
+                    if self.item == True:
+                        if pos[2] < 0.75:
+                            continue
                     
                     if pos in temp_dict:
                         temp_dict[pos].append(dose)     
@@ -211,8 +221,12 @@ class AccumulationMap(object):
 
         ## Create marker array of cells
         for pose_key in temp_dict:
-            dose_value = sum(temp_dict[pose_key])*self.measuring_ratio
+            # dose_2 = sum(temp_dict[pose_key])*self.measuring_ratio
+            # dose_2 = sum(temp_dict[pose_key])/len(temp_dict[pose_key])
+            dose_value = max(temp_dict[pose_key])
+            # hits = len(temp_dict[pose_key])
 
+            # print(dose_value, dose_2, hits)
             ## Update accumulation map dictionary
             if pose_key in self.acc_map_dict:
                 self.acc_map_dict[pose_key] += dose_value
