@@ -19,13 +19,16 @@
 	      (105mm Min-Z) below which objects generate bad noise, such as
 	      when the arm and gripper are raised close to the camera.
     -->    
-    <arg name="depth_width"  value="424"/>
-    <arg name="depth_height" value="240"/>
-    <arg name="color_width"  value="424"/>
-    <arg name="color_height" value="240"/> 
-    <arg name="depth_fps"    value="30"/>
-    <arg name="color_fps"    value="30"/>
-    
+    <arg name="depth_width"       value="424"/>
+    <arg name="depth_height"      value="240"/>
+    <arg name="color_width"       value="424"/>
+    <arg name="color_height"      value="240"/> 
+    <arg name="depth_fps"         value="30"/>
+    <arg name="color_fps"         value="30"/>
+    <!-- <arg name="enable_pointcloud" value="false"/> -->
+    <!-- <arg name="filters"           value="pointcloud"/> -->
+    <!-- <arg name="initial_reset"     value="true"/> -->
+
     </include>
 
 <!-- Launch the depth_image_proc nodelet manager -->
@@ -33,7 +36,7 @@
         args="load depth_image_proc/point_cloud_xyz nodelet_manager">
     <remap from="camera_info"  to="/camera/depth/camera_info"/>
     <remap from="image_rect"   to="/filtered_depth_image"/>
-    <remap from="points"       to="/pcl_depthmap"/>
+    <remap from="points"       to="/filtered_pcl2"/>
   </node>
 
  
