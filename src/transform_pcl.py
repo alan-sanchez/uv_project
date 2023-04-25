@@ -22,7 +22,7 @@ class TransformPCL(object):
         :param self: The self reference.
         """
         ## Initialize Subscribers
-        self.combined_pcl2_sub   = rospy.Subscriber('/pcl_depthmap',                PointCloud2, self.callback_combined_pcl2,   queue_size=10)
+        self.combined_pcl2_sub   = rospy.Subscriber('/filtered_pcl2',               PointCloud2, self.callback_combined_pcl2,   queue_size=10)
         self.oct_center_pcl2_sub = rospy.Subscriber('/octomap_point_cloud_centers', PointCloud2, self.callback_oct_center_pcl2, queue_size=10)
         self.start_sub           = rospy.Subscriber('/command',                     String,      self.callback_command)
         
@@ -88,26 +88,13 @@ class TransformPCL(object):
 
             ## Initialize a new point cloud message type to store position data.
             pcl_cloud = PointCloud()
-            pcl_cloud.header = pcl2_msg.header
-            pcl_cloud.header.stamp=rospy.Time.now()
-            # intensity_channel = ChannelFloat32()
-            # intensity_channel.name = "intensity"
-            # intensity_channel.values = []
+            pcl_cloud.header = pcl2_msg.header  
 
             ## For loop to extract pointcloud2 data into a list of x,y,z, and
             ## store it in a pointcloud message (pcl_cloud)
             # count = 0
             for data in pc2.read_points(pcl2_msg, skip_nans=True):
                 pcl_cloud.points.append(Point32(data[0],data[1],data[2]))
-                # print(type(data[0]))
-                # print(data[0])
-                # if str(data[0]) == 'nan':
-                #     count+=1
-            
-            # print(count)
-            # print(len(pcl_cloud.points))
-
-            # pcl_cloud.channels = [intensity_channel]
 
             ## Transform the pointcloud message to reference the `base_link`
             base_cloud = self.transform_pointcloud(pcl_cloud, "/base_link")
