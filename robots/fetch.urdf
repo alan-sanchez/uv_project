@@ -454,13 +454,31 @@
     <child link="l_gripper_finger_link" />
     <axis xyz="0 -1 0" />
   <limit effort="60" lower="0.0" upper="0.05" velocity="0.05" /><dynamics damping="100.0" /></joint>
-  <link name="ee_link" />
-  <joint name="ee_joint" type="fixed">
-    <origin rpy="0 1.57079632679 0" xyz="0 0 0" />
+
+  <link name="camera_link" />
+  <joint name="camera_joint" type="fixed">
+    <origin rpy="0 1.57079632679 0" xyz="-0.09 0.0175 -0.063" />
     <parent link="gripper_link" />
-    <child link="ee_link" />
+    <child link="camera_link" />
     <axis xyz="0 0 0"/>
   </joint>
+
+  <link name="camera_color_optical_frame" />
+  <joint name="camera_color_optical_frame_joint" type="fixed">
+    <origin rpy="-1.5707963267948968 0.0 -1.5707963267948968" xyz="-0.0003675 0.014825 0.00014789" />
+    <parent link="camera_link" />
+    <child link="camera_color_optical_frame" />
+    <axis xyz="0 0 0"/>
+  </joint>
+
+  <link name="uv_light_link" />
+  <joint name="uv_light_joint" type="fixed">
+    <origin rpy="0 0 0" xyz="0 0 -0.08" />
+    <parent link="gripper_link" />
+    <child link="uv_light_link" />
+    <axis xyz="0 0 0"/>
+  </joint>
+
   <link name="bellows_link">
     <inertial>
       <origin rpy="0 0 0" xyz="0.0191320000286228 -1.67219873481315E-16 -0.134861625443387" />

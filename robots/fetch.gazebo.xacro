@@ -1,5 +1,5 @@
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="fetch" >
-  <xacro:include filename="$(find fetch_sim2real)/robots/fetch.urdf" />
+  <xacro:include filename="$(find uv_project)/robots/fetch.urdf" />
 
   <!-- Add four casters to the base -->
   <xacro:macro name="caster" params="prefix joint_x joint_y">
