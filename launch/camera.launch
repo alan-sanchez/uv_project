@@ -9,9 +9,6 @@
 <!-- Start the camerat tf broacaster node -->
   <node pkg="uv_project" type="camera_tf_broadcaster.py" name="camera_tf_broadcaster" output="screen"/>
 
-<!-- Start the transform pointcloud node -->
-  <!-- <node pkg="uv_project" type="transform_pcl.py" name="transform_pcl" output="screen"/> -->
-
 <!-- Launch realsense camera rgbd file -->
   <include file="$(find realsense2_camera)/launch/rs_rgbd.launch" >
     <!--
