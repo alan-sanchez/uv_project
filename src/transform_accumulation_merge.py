@@ -234,10 +234,6 @@ class TransformPCL(object):
 
                         ## Pull coordinates of cell key
                         pos = tuple(self.octree.keyToCoord(key))
-
-                        if self.item == True:
-                            if pos[2] < 0.75:
-                                continue
                         
                         if pos in temp_dict:
                             temp_dict[pos].append(dose)     
