@@ -303,7 +303,7 @@ class TransformPCL(object):
 
 if __name__=="__main__":
     ## Initialize transform_pcl node
-    rospy.init_node('transform_pcl',anonymous=True)
+    rospy.init_node('transform_accumulation_merge',anonymous=True)
 
     ## Instantiate the IrradianceVectors class
     TransformPCL()
