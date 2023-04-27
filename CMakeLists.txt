@@ -222,11 +222,3 @@ add_executable(uv_model
 target_link_libraries(uv_model
   ${catkin_LIBRARIES}
 )
-
-add_executable(transform_pcl
-  src/transform_pcl.cpp
-)
-
-target_link_libraries(transform_pcl
-  ${catkin_LIBRARIES}
-)
