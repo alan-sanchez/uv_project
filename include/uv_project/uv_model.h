@@ -3,6 +3,6 @@
 
 #include <ros/ros.h>
 
-double fit(double);
+double model(double x);
 
 #endif
