@@ -31,7 +31,7 @@ class TransformPCL(object):
         ## Initialize Subscribers
         self.combined_pcl2_sub   = rospy.Subscriber('/filtered_pcl2',               PointCloud2, self.callback_combined_pcl2,   queue_size=10)
         self.oct_center_pcl2_sub = rospy.Subscriber('/octomap_point_cloud_centers', PointCloud2, self.callback_oct_center_pcl2, queue_size=10)
-        self.start_sub           = rospy.Subscriber('/command',                     String,      self.callback_command)
+        self.command_sub         = rospy.Subscriber('/command',                     String,      self.callback_command,         queue_size=10)
         
         ## Initialize PointCloud Publishers
         # self.baselink_pcl_pub = rospy.Publisher("/baselink_reference_pcl", PointCloud, queue_size=5)
