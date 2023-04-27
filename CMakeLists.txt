@@ -11,10 +11,12 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   std_msgs
+  tf
 )
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
+# find_package(PCL REQUIRED)
 
 
 ## Uncomment this if the package has a setup.py. This macro ensures
@@ -181,7 +183,7 @@ install(TARGETS ${PROJECT_NAME}
 ## Mark cpp header files for installation
 install(DIRECTORY include/${PROJECT_NAME}/
   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
-#   FILES_MATCHING PATTERN "*.h"
+  FILES_MATCHING PATTERN "*.h"
 #   PATTERN ".svn" EXCLUDE
 )
 
@@ -221,3 +223,10 @@ target_link_libraries(uv_model
   ${catkin_LIBRARIES}
 )
 
+add_executable(transform_pcl
+  src/transform_pcl.cpp
+)
+
+target_link_libraries(transform_pcl
+  ${catkin_LIBRARIES}
+)
