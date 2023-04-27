@@ -45,14 +45,9 @@ class TransformPCL(object):
         ## of the octomap will be stored here
         self.oct_center_pcl2 = None
 
-        ## Initialize self.command
-        self.command = "stop"
-
         ## Initialize OcTree function with a resolution of 0.01 meters
         self.resolution = rospy.get_param('resolution')#0.01
         self.octree = octomap.OcTree(self.resolution)
-
-        self.measuring_ratio = (0.01/self.resolution)**2 # 0.01 is the side length of UV sensor
 
         ## vector the points straight down in the z direction from `uv_light_link` tf
         self.grip_vec = [0,0,-.3]
@@ -63,7 +58,7 @@ class TransformPCL(object):
 
         ## The required UV Dose for a UV rate constant of 0.0867 m^2/J
         ## at 99.9% disinfection rate is, 151.68 (J/m^2)
-        self.required_dose = 151.66 #53.10 #151.68
+        self.required_dose = 151.686 #53.10 
 
         ## Command that begins and stops accumulation map and markers
         self.command = None
