@@ -125,7 +125,7 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
   ${PCL_INCLUDE_DIRS}
   ${EIGEN3_INCLUDE_DIRS}
-  ${octomap_INCLUDE_DIRS}
+  ${OCTOMAP_INCLUDE_DIRS}
   ${octomap_msgs_INCLUDE_DIRS}
 )
 
@@ -158,10 +158,10 @@ add_library(${PROJECT_NAME}
 ## Specify libraries to link a library or executable target against
 target_link_libraries(${PROJECT_NAME}
   ${catkin_LIBRARIES}
-  ${octomap_LIBRARIES}
+  ${OCTOMAP_LIBRARIES}
 )
 
-# link_directories(${OCTOMAP_LIBRARY_DIRS})
+link_directories(${OCTOMAP_LIBRARY_DIRS})
 
 #############
 ## Install ##
