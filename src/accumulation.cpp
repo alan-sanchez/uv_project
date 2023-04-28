@@ -27,6 +27,7 @@
 #include <visualization_msgs/MarkerArray.h>
 
 #include "uv_project/uv_model.h"
+// #include "uv_model/in_polygon_check.h"
 
 // #include <pcl_conversions/pcl_conversions.h>
 // #include <pcl_ros/transforms.h>
@@ -63,6 +64,9 @@ class Accumulation {
     double uv_time_exposure;
 
     string command;
+    map<vector<double>, double> acc_macp_dict;
+    map<vector<double>, int> cube_id_dict;
+
 
     public:
     Accumulation() {
@@ -124,8 +128,8 @@ class Accumulation {
         // std::vector<std::vector<double>> region = {{0.70, 0.07}, {0.90, 0.07}, {0.90, -0.113}, {0.70, -0.113}};  // Cone
         // std::vector<std::vector<double>> region = {{0.75, 0.05}, {0.90, 0.05}, {0.90, -0.09}, {0.75, -0.09}};  // Mug
 
-        // TODO: Include geometry feature 
     }
+
 
     /*
     A function that stores the PointCloud2 message
@@ -135,13 +139,25 @@ class Accumulation {
         oct_center_pcl2 = pcl2_msg;          
     }
 
+
     /*
     A function that transforms PointClouds to a desired transform frame
     then creates an octree from those points. 
     :param str_msg: String message
     */
     void callback_command(const std_msgs::String& str_msg){
-        cout << "made it here" << endl;          
+        if (str_msg.data == "start") {
+            // // Clear previous octree, markers, and dictrionaries
+            // tree.clear();
+                
+            ros::Duration(0.2).sleep(); 
+        }
+        else if (str_msg.data == "stop") {
+            command = str_msg.data;
+
+
+        }
+
     }
 
     /*
