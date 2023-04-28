@@ -149,8 +149,15 @@ class Accumulation {
         if (str_msg.data == "start") {
             // // Clear previous octree, markers, and dictrionaries
             // tree.clear();
-                
+            acc_macp_dict.clear()
+            cube_id_dict.clear()
+            marker.action = visualization_msgs::Marker::DELETEALL;
+            markerArray.markers.push_back(marker);
+            MarkerArray_publisher.publish(markerArray);
+            marker.action = visualization_msgs::Marker::ADD;                
             ros::Duration(0.2).sleep(); 
+
+            
         }
         else if (str_msg.data == "stop") {
             command = str_msg.data;
