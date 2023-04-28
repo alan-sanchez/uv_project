@@ -39,11 +39,11 @@ double model(double x)
 /*
 Main function that runs the `model` function 
 */
-int main()
-{
-    // Call `model` function with argument value of 1
-    double irradiance = model(1);
+// int main()
+// {
+//     // Call `model` function with argument value of 1
+//     double irradiance = model(1);
 
-    // Print out irradiance value
-    cout << "Irradiance: " << irradiance <<endl;
-}
+//     // Print out irradiance value
+//     cout << "Irradiance: " << irradiance <<endl;
+// }
