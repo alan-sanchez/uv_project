@@ -46,6 +46,8 @@ class Accumulation {
 
     std_msgs::Header header;
 
+    sensor_msgs::PointCloud2 oct_center_pcl2;
+
     visualization_msgs::Marker marker;
     visualization_msgs::MarkerArray markerArray;
 
@@ -96,8 +98,8 @@ class Accumulation {
         // std_msgs::String command = "stop"; /* WHY DOES THIS NOT COMPILE?  */
 
         /*
-        Created a header that calls a function that provides the irradiance for a given x value
-        TODO: get model working in this class
+        Created a header, uv_model.h, that calls a function that provides the irradiance for a given x value
+        TODO: get UV model, `model` working in this class
         */
 
         // // Use current time for `prev_time` and set `uv_time_exposure` to zero
@@ -117,18 +119,39 @@ class Accumulation {
         marker.scale.z = resolution;
         marker.pose.orientation.w = 1.0;
 
+        // // Create sensor array region
+        std::vector<std::vector<double>> region = {{0.72, 0.55}, {0.74, 0.55}, {0.74, -0.55}, {0.72, -0.55}};  // Sensor Array
+        // std::vector<std::vector<double>> region = {{0.70, 0.07}, {0.90, 0.07}, {0.90, -0.113}, {0.70, -0.113}};  // Cone
+        // std::vector<std::vector<double>> region = {{0.75, 0.05}, {0.90, 0.05}, {0.90, -0.09}, {0.75, -0.09}};  // Mug
+
+        // TODO: Include geometry feature 
     }
 
+    /*
+    A function that stores the PointCloud2 message
+    :param pcl2_msg: The PointCloud2 message
+    */
     void callback_oct_center_pcl2(const sensor_msgs::PointCloud2& pcl2_msg){
-        cout << "made it here" << endl;          
+        oct_center_pcl2 = pcl2_msg;          
     }
 
+    /*
+    A function that transforms PointClouds to a desired transform frame
+    then creates an octree from those points. 
+    :param str_msg: String message
+    */
     void callback_command(const std_msgs::String& str_msg){
         cout << "made it here" << endl;          
     }
 
+    /*
+    Callback function that stores the PointCloud2 message of the combined
+    filtered image and depth map. This function als transforms the coordinates
+    from its original transform frame to the `base_link` and `uv_light_link`
+    :param pcl2_msg: The PointCloud2 message
+    */
     void callback_combined_pcl2(const sensor_msgs::PointCloud2& pcl_msg){
-        double x = 1;
+        cout << "made it here" << endl;          
         //cout << pcl_msg << endl;
         // sensor_msgs::PointCloud2 pcl_out;
         // try
