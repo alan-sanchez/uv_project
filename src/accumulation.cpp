@@ -1,14 +1,16 @@
 /**
-**  C++ version of python node: transform_accumulation_merge.py
+C++ version of python node: transform_accumulation_merge.py
 **/
-
 // // Import message types and other libraries
 #include <ros/ros.h>
+#include <iostream>
+#include <string>
+#include <cmath>
+#include <set>
+
 #include <tf/tf.h>
 #include <tf/transform_listener.h>
 #include <tf2_ros/transform_listener.h>
-#include <iostream>
-#include <string>
 
 #include <octomap/octomap.h>
 #include <octomap/OcTree.h>
@@ -29,12 +31,13 @@
 #include "uv_project/uv_model.h"
 // #include "uv_model/in_polygon_check.h"
 
+#include <pcl/conversions.h>
 // #include <pcl_conversions/pcl_conversions.h>
-// #include <pcl_ros/transforms.h>
+#include <pcl_ros/transforms.h>
 // #include <tf2_eigen/tf2_eigen.h>
 
 using namespace std;
-using namespace octomap;
+// using namespace octomap;
 
 class Accumulation {
     private:
@@ -46,7 +49,7 @@ class Accumulation {
     ros::Publisher MarkerArray_publisher;
 
     std_msgs::Header header;
-
+    std_msgs::String command;
     sensor_msgs::PointCloud2 oct_center_pcl2;
 
     visualization_msgs::Marker marker;
@@ -55,6 +58,8 @@ class Accumulation {
     tf::TransformListener listener;
     // tf2_ros::TransformListener listener2; 
 
+    // octomap::OcTree tree;
+
     double resolution;
     double negative_z_arr[3];
     double magnitude_z_arr;
@@ -62,8 +67,8 @@ class Accumulation {
     double required_dose;
     double prev_time;
     double uv_time_exposure;
+    double irradiance
 
-    string command;
     map<vector<double>, double> acc_macp_dict;
     map<vector<double>, int> cube_id_dict;
 
@@ -80,7 +85,7 @@ class Accumulation {
 
         // // Intitialize OcTree class and acquire resolution
         ros::param::get("resolution", resolution);
-        // OcTree tree(resolution); /*DOES NOT COMPILE*/
+//----->octomap::OcTree tree(resolution); /*DOES NOT COMPILE*/
 
         // // Create array that points in the negative z direction from the `uv_light_link`
         negative_z_arr[0] = 0;
@@ -98,13 +103,13 @@ class Accumulation {
         required_dose = 151.68;
 
         // // Initialize `command` string message
-        command = "None";
-        // std_msgs::String command = "stop"; /* WHY DOES THIS NOT COMPILE?  */
+        command.data = "None"; 
 
         /*
         Created a header, uv_model.h, that calls a function that provides the irradiance for a given x value
-        TODO: get UV model, `model` working in this class
+//----->TODO: get UV model, `model` working in this class
         */
+        double x = model(1);
 
         // // Use current time for `prev_time` and set `uv_time_exposure` to zero
         prev_time = ros::Time::now().toSec();
@@ -127,7 +132,6 @@ class Accumulation {
         std::vector<std::vector<double>> region = {{0.72, 0.55}, {0.74, 0.55}, {0.74, -0.55}, {0.72, -0.55}};  // Sensor Array
         // std::vector<std::vector<double>> region = {{0.70, 0.07}, {0.90, 0.07}, {0.90, -0.113}, {0.70, -0.113}};  // Cone
         // std::vector<std::vector<double>> region = {{0.75, 0.05}, {0.90, 0.05}, {0.90, -0.09}, {0.75, -0.09}};  // Mug
-
     }
 
 
@@ -148,19 +152,24 @@ class Accumulation {
     void callback_command(const std_msgs::String& str_msg){
         if (str_msg.data == "start") {
             // // Clear previous octree, markers, and dictrionaries
-            // tree.clear();
-            acc_macp_dict.clear()
-            cube_id_dict.clear()
+//--------->// tree.clear(); /* Won't compile*/ 
+            acc_macp_dict.clear();
+            cube_id_dict.clear();
             marker.action = visualization_msgs::Marker::DELETEALL;
             markerArray.markers.push_back(marker);
             MarkerArray_publisher.publish(markerArray);
             marker.action = visualization_msgs::Marker::ADD;                
             ros::Duration(0.2).sleep(); 
 
+            pcl::PointCloud<pcl::PointXYZ> temp_pointcloud;
+
+
+            command.data = str_msg.data;
+
             
         }
         else if (str_msg.data == "stop") {
-            command = str_msg.data;
+            command.data = str_msg.data;
 
 
         }
