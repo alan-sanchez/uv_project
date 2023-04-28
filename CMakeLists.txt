@@ -16,11 +16,13 @@ find_package(catkin REQUIRED COMPONENTS
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
+
 # find_package(PCL REQUIRED)
-find_package(octomap REQUIRED)
-include_directories(${OCTOMAP_INCLUDE_DIRS})
-link_directories(${OCTOMAP_LIBRARY_DIRS})
-#target_link_libraries(${OCTOMAP_LIBRARIES})
+
+# find_package(octomap REQUIRED)
+# include_directories(${OCTOMAP_INCLUDE_DIRS})
+# link_directories(${OCTOMAP_LIBRARY_DIRS})
+# target_link_libraries(${OCTOMAP_LIBRARIES})
 
 
 ## Uncomment this if the package has a setup.py. This macro ensures
@@ -129,6 +131,7 @@ include_directories(
 ## Declare a C++ library
 add_library(${PROJECT_NAME}
    src/uv_model.cpp
+#   src/in_polygon_check.cpp
 )
 
 ## Add cmake target dependencies of the library
@@ -221,6 +224,14 @@ target_link_libraries(accumulation
 
 add_executable(uv_model
   src/uv_model.cpp
+)
+
+target_link_libraries(uv_model
+  ${catkin_LIBRARIES}
+)
+
+add_executable(in_polygon_check
+  src/in_polygon_check.cpp
 )
 
 target_link_libraries(uv_model
