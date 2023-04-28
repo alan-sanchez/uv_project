@@ -17,13 +17,10 @@ find_package(catkin REQUIRED COMPONENTS
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
 
-# find_package(PCL REQUIRED)
-
-# find_package(octomap REQUIRED)
-# include_directories(${OCTOMAP_INCLUDE_DIRS})
-# link_directories(${OCTOMAP_LIBRARY_DIRS})
-# target_link_libraries(${OCTOMAP_LIBRARIES})
-
+find_package(PCL REQUIRED COMPONENTS common io)
+find_package(Eigen3 REQUIRED)
+find_package(octomap REQUIRED)
+find_package(octomap_msgs REQUIRED)
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
@@ -113,8 +110,8 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES uv_project
-  CATKIN_DEPENDS roscpp rospy std_msgs
-#  DEPENDS system_lib
+  CATKIN_DEPENDS roscpp rospy std_msgs pcls_msgs 
+  DEPENDS EIGEN3 PCL octomap
 )
 
 ###########
@@ -126,12 +123,16 @@ catkin_package(
 include_directories(
   include
   ${catkin_INCLUDE_DIRS}
+  ${PCL_INCLUDE_DIRS}
+  ${EIGEN3_INCLUDE_DIRS}
+  ${octomap_INCLUDE_DIRS}
+  ${octomap_msgs_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
 add_library(${PROJECT_NAME}
    src/uv_model.cpp
-#   src/in_polygon_check.cpp
+   #src/in_polygon_check.cpp
 )
 
 ## Add cmake target dependencies of the library
@@ -157,7 +158,10 @@ add_library(${PROJECT_NAME}
 ## Specify libraries to link a library or executable target against
 target_link_libraries(${PROJECT_NAME}
   ${catkin_LIBRARIES}
+  ${octomap_LIBRARIES}
 )
+
+# link_directories(${OCTOMAP_LIBRARY_DIRS})
 
 #############
 ## Install ##
@@ -216,24 +220,16 @@ install(DIRECTORY include/${PROJECT_NAME}/
 
 add_executable(accumulation
   src/accumulation.cpp
+  src/uv_model.cpp
 )
-
 target_link_libraries(accumulation
   ${catkin_LIBRARIES}
 )
 
-add_executable(uv_model
-  src/uv_model.cpp
-)
-
-target_link_libraries(uv_model
-  ${catkin_LIBRARIES}
-)
 
 add_executable(in_polygon_check
   src/in_polygon_check.cpp
 )
-
-target_link_libraries(uv_model
+target_link_libraries(in_polygon_check
   ${catkin_LIBRARIES}
 )
