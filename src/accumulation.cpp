@@ -31,9 +31,10 @@ C++ version of python node: transform_accumulation_merge.py
 #include "uv_project/uv_model.h"
 // #include "uv_model/in_polygon_check.h"
 
-#include <pcl/conversions.h>
-// #include <pcl_conversions/pcl_conversions.h>
+// #include <pcl/conversions.h>
+#include <pcl_conversions/pcl_conversions.h>
 #include <pcl_ros/transforms.h>
+#include <pcl_ros/point_cloud.h>
 // #include <tf2_eigen/tf2_eigen.h>
 
 using namespace std;
@@ -56,7 +57,7 @@ class Accumulation {
     visualization_msgs::MarkerArray markerArray;
 
     tf::TransformListener listener;
-    // tf2_ros::TransformListener listener2; 
+    // tf2_ros::TransformListener listener2;
 
     // octomap::OcTree tree;
 
@@ -67,25 +68,23 @@ class Accumulation {
     double required_dose;
     double prev_time;
     double uv_time_exposure;
-    double irradiance
 
     map<vector<double>, double> acc_macp_dict;
     map<vector<double>, int> cube_id_dict;
 
-
     public:
     Accumulation() {
         // // Initialize subscribers
-        combined_pcl2_sub   = nh.subscribe("filtered_pcl2",               10, &Accumulation::callback_combined_pcl2,   this); 
-        oct_center_pcl2_sub = nh.subscribe("octomap_point_cloud_centers", 10, &Accumulation::callback_oct_center_pcl2, this); 
-        command_sub         = nh.subscribe("command",                     10, &Accumulation::callback_command,         this); 
-        
+        combined_pcl2_sub   = nh.subscribe("filtered_pcl2",               10, &Accumulation::callback_combined_pcl2,   this);
+        oct_center_pcl2_sub = nh.subscribe("octomap_point_cloud_centers", 10, &Accumulation::callback_oct_center_pcl2, this);
+        command_sub         = nh.subscribe("command",                     10, &Accumulation::callback_command,         this);
+
         // // Initialize publisher
         MarkerArray_publisher = nh.advertise<visualization_msgs::Marker>("accumulation_map", 10);
 
         // // Intitialize OcTree class and acquire resolution
         ros::param::get("resolution", resolution);
-//----->octomap::OcTree tree(resolution); /*DOES NOT COMPILE*/
+//----->tree(resolution); /*DOES NOT COMPILE*/
 
         // // Create array that points in the negative z direction from the `uv_light_link`
         negative_z_arr[0] = 0;
@@ -103,13 +102,7 @@ class Accumulation {
         required_dose = 151.68;
 
         // // Initialize `command` string message
-        command.data = "None"; 
-
-        /*
-        Created a header, uv_model.h, that calls a function that provides the irradiance for a given x value
-//----->TODO: get UV model, `model` working in this class
-        */
-        double x = model(1);
+        command.data = "None";
 
         // // Use current time for `prev_time` and set `uv_time_exposure` to zero
         prev_time = ros::Time::now().toSec();
@@ -119,7 +112,7 @@ class Accumulation {
         header.frame_id = "/base_link";
         header.stamp = ros::Time::now();
 
-        // Initialize marker 
+        // Initialize marker
         marker.header = header;
         marker.type = visualization_msgs::Marker::CUBE_LIST;
         marker.action = visualization_msgs::Marker::ADD;
@@ -140,33 +133,30 @@ class Accumulation {
     :param pcl2_msg: The PointCloud2 message
     */
     void callback_oct_center_pcl2(const sensor_msgs::PointCloud2& pcl2_msg){
-        oct_center_pcl2 = pcl2_msg;          
+        oct_center_pcl2 = pcl2_msg;
     }
 
 
     /*
     A function that transforms PointClouds to a desired transform frame
-    then creates an octree from those points. 
+    then creates an octree from those points.
     :param str_msg: String message
     */
     void callback_command(const std_msgs::String& str_msg){
         if (str_msg.data == "start") {
             // // Clear previous octree, markers, and dictrionaries
-//--------->// tree.clear(); /* Won't compile*/ 
+//--------->// tree.clear(); /* Won't compile*/
             acc_macp_dict.clear();
             cube_id_dict.clear();
             marker.action = visualization_msgs::Marker::DELETEALL;
             markerArray.markers.push_back(marker);
             MarkerArray_publisher.publish(markerArray);
-            marker.action = visualization_msgs::Marker::ADD;                
-            ros::Duration(0.2).sleep(); 
+            marker.action = visualization_msgs::Marker::ADD;
+            ros::Duration(0.2).sleep();
 
             pcl::PointCloud<pcl::PointXYZ> temp_pointcloud;
 
-
             command.data = str_msg.data;
-
-            
         }
         else if (str_msg.data == "stop") {
             command.data = str_msg.data;
@@ -183,25 +173,44 @@ class Accumulation {
     :param pcl2_msg: The PointCloud2 message
     */
     void callback_combined_pcl2(const sensor_msgs::PointCloud2& pcl_msg){
-        cout << "made it here" << endl;          
-        //cout << pcl_msg << endl;
-        // sensor_msgs::PointCloud2 pcl_out;
-        // try
-        // {
-        //     listener.transformPointCloud("base_link", pcl_msg, pcl_out);
-        // }
-        // catch (tf::TransformExecptions& ex);
-        // {
-        //     ROS_ERROR("Transform error: %s", ex.what());
-        //     return;
-        // }
+        cout << "made it here" << endl;
+      
     }
 };
 
 
+sensor_msgs::PointCloud2 transform_pointcloud( const sensor_msgs::PointCloud& pcl_cloud, const std::string& target_frame) {
+    ros::Time now = ros::Time::now();
+    // pcl_cloud.header.stamp = now;
+
+    // sensor_msgs::PointCloud2 pcl_out;
+    // try
+    // {
+    //     listener.transformPointCloud("base_link", pcl_msg, pcl_out);
+    // }
+    // catch (tf::TransformExecptions& ex);
+    // {
+    //     ROS_ERROR("Transform error: %s", ex.what());
+    //     return;
+    // }
+
+    // while (ros::ok()) {
+    //     try {
+    //         sensor_msgs::PointCloud2 new_cloud;
+    //         pcl_ros::transformPointCloud(target_frame, pcl_cloud, new_cloud, listener);
+    //         return new_cloud;
+    //     }
+    //     catch (tf::TransformException& ex) {
+    //         ROS_WARN("%s", ex.what());
+    //         ros::Duration(0.1).sleep();
+    //     }
+    // }
+}
+
+
 int main (int argc, char **argv)
 {
-    // // Initialize the node 
+    // // Initialize the node
     ros::init(argc, argv, "accumulation");
     // ros::NodeHandle nh;
 
@@ -218,4 +227,3 @@ int main (int argc, char **argv)
     // // Print out irradiance value
     // cout << "Irradiance: " << irradiance <<endl;
 }
-
