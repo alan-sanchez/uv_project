@@ -125,14 +125,14 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
   ${PCL_INCLUDE_DIRS}
   ${EIGEN3_INCLUDE_DIRS}
-  ${OCTOMAP_INCLUDE_DIRS}
+  ${octomap_INCLUDE_DIRS}
   ${octomap_msgs_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
 add_library(${PROJECT_NAME}
    src/uv_model.cpp
-   #src/in_polygon_check.cpp
+   src/in_polygon_check.cpp
 )
 
 ## Add cmake target dependencies of the library
@@ -161,7 +161,7 @@ target_link_libraries(${PROJECT_NAME}
   ${OCTOMAP_LIBRARIES}
 )
 
-link_directories(${OCTOMAP_LIBRARY_DIRS})
+
 
 #############
 ## Install ##
@@ -224,12 +224,5 @@ add_executable(accumulation
 )
 target_link_libraries(accumulation
   ${catkin_LIBRARIES}
-)
-
-
-add_executable(in_polygon_check
-  src/in_polygon_check.cpp
-)
-target_link_libraries(in_polygon_check
-  ${catkin_LIBRARIES}
+  octomap
 )
