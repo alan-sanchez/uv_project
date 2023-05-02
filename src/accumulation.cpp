@@ -33,8 +33,8 @@ C++ version of python node: transform_accumulation_merge.py
 
 // #include <pcl/conversions.h>
 #include <pcl_conversions/pcl_conversions.h>
-#include <pcl_ros/transforms.h>
-#include <pcl_ros/point_cloud.h>
+// #include <pcl_ros/transforms.h>
+// #include <pcl_ros/point_cloud.h>
 // #include <tf2_eigen/tf2_eigen.h>
 
 using namespace std;
@@ -59,7 +59,7 @@ class Accumulation {
     tf::TransformListener listener;
     // tf2_ros::TransformListener listener2;
 
-    // octomap::OcTree tree;
+    octomap::Pointcloud octomapCloud;
 
     double resolution;
     double negative_z_arr[3];
@@ -84,7 +84,7 @@ class Accumulation {
 
         // // Intitialize OcTree class and acquire resolution
         ros::param::get("resolution", resolution);
-//----->tree(resolution); /*DOES NOT COMPILE*/
+        octomap::OcTree tree(resolution);
 
         // // Create array that points in the negative z direction from the `uv_light_link`
         negative_z_arr[0] = 0;
@@ -145,7 +145,10 @@ class Accumulation {
     void callback_command(const std_msgs::String& str_msg){
         if (str_msg.data == "start") {
             // // Clear previous octree, markers, and dictrionaries
-//--------->// tree.clear(); /* Won't compile*/
+            // // Intitialize OcTree class and acquire resolution
+            ros::param::get("resolution", resolution);
+            octomap::OcTree tree(resolution);
+            tree.clear(); 
             acc_macp_dict.clear();
             cube_id_dict.clear();
             marker.action = visualization_msgs::Marker::DELETEALL;
@@ -154,7 +157,13 @@ class Accumulation {
             marker.action = visualization_msgs::Marker::ADD;
             ros::Duration(0.2).sleep();
 
-            pcl::PointCloud<pcl::PointXYZ> temp_pointcloud;
+            octomap::Pointcloud octomapCloud;
+
+            // // Iterate through the point cloud data
+            // for (int i = 0; i < cloudMsg->width * cloudMsg->height; i++) {
+            //     const float* data = reinterpret_cast<const float*>(&cloudMsg->data[i * cloudMsg->point_step]);
+            //     octomapCloud.push_back(data[0], data[1], data[2]);
+            // }
 
             command.data = str_msg.data;
         }
