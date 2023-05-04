@@ -252,6 +252,27 @@ class Accumulation {
                         octomap::OcTreeKey key;
                         octomap::point3d pnt(base_coord.x, base_coord.y, base_coord.z);
                         bool chk = tree.coordToKeyChecked(pnt, key)
+
+                        if chk {
+                            // compute the UV dose for the conical `rad` value
+                            double radius = 0.3 * tan(rad);
+                            double ir = uv_model(radius) * 10; // multiply by 10 to convert from mW/cm^2 to W/m^2
+                            double dist_ratio = pow(0.3, 2) / pow(ray_length, 2); // Inverse square law ratio
+                            double dose = dist_ratio * time_exposure * ir;
+
+                            // Pull coordinates of cell key
+                            octomap::point3d pos = tree.keyToCoord(key);
+
+                            if (temp_dict.count(pos) > 0) {
+                                temp_dict[pos].push_back(dose);
+                            }
+                            else {
+                                std::vector<double> doses;
+                                doses.push_back(dose);
+                                temp_dict[pos] = doses;
+                            }
+
+                        }
                     }
                 }             
             }
