@@ -21,6 +21,7 @@ C++ version of python node: transform_accumulation_merge.py
 
 #include <sensor_msgs/PointCloud2.h>
 #include <sensor_msgs/PointCloud.h>
+#include <sensor_msgs/point_cloud_conversion.h>
 
 #include <geometry_msgs/Point32.h>
 #include <geometry_msgs/Point.h>
@@ -32,17 +33,16 @@ C++ version of python node: transform_accumulation_merge.py
 #include <visualization_msgs/Marker.h>
 #include <visualization_msgs/MarkerArray.h>
 
-#include "uv_project/uv_model.h"
-// #include "uv_model/in_polygon_check.h"
-
 #include <pcl/conversions.h>
 #include <pcl_conversions/pcl_conversions.h>
 #include <pcl_ros/transforms.h>
 #include <pcl_ros/point_cloud.h>
 // #include <tf2_eigen/tf2_eigen.h>
 
+#include "uv_project/uv_model.h"
+// #include "uv_project/in_polygon_check.h"
+
 using namespace std;
-// using namespace octomap;
 
 class Accumulation {
     private:
@@ -79,7 +79,7 @@ class Accumulation {
     public:
     Accumulation() {
         // // Initialize subscribers
-        combined_pcl2_sub   = nh.subscribe("filtered_pcl2",               10, &Accumulation::callback_combined_pcl2,   this);
+        combined_pcl2_sub   = nh.subscribe("filtered_pcl2",               10, &Accumulation::callback_filtered_pcl2,   this);
         oct_center_pcl2_sub = nh.subscribe("octomap_point_cloud_centers", 10, &Accumulation::callback_oct_center_pcl2, this);
         command_sub         = nh.subscribe("command",                     10, &Accumulation::callback_command,         this);
 
@@ -150,8 +150,6 @@ class Accumulation {
         if (str_msg.data == "start") {
             // // Clear previous octree, markers, and dictrionaries
             // // Intitialize OcTree class and acquire resolution
-            ros::param::get("resolution", resolution);
-            octomap::OcTree tree(resolution);
             tree.clear(); 
             acc_map_dict.clear();
             cube_id_dict.clear();
@@ -208,8 +206,57 @@ class Accumulation {
     from its original transform frame to the `base_link` and `uv_light_link`
     :param pcl2_msg: The PointCloud2 message
     */
-    void callback_combined_pcl2(const sensor_msgs::PointCloud2& pcl_msg){
-        cout << "made it here" << endl;
+    void callback_filtered_pcl2(const sensor_msgs::PointCloud2& pcl2_msg){
+        if (command.data == "start") {
+
+            // //  This resets the `prev_time` variable to current time and sets `uv_time_exposure` to zero
+            // //  after a trajectory execution is complete. This is because there is a 2 second wait 
+            // //  time before the user can command another trajectory
+            if ((ros::Time::now().toSec() - prev_time) > 2.0) {
+                prev_time = ros::Time::now().toSec();
+                uv_time_exposure = 0;
+            } 
+
+            // // Create temporary dictionary
+            map<vector<double>, double> temp_dict;
+
+            // // Transform the `pcl2_msg` to reference the `base_link` then create a 
+            // // PointCloud object 
+            sensor_msgs::PointCloud2 baselink_pcl2 = transform_pointcloud(pcl2_msg, "base_link");
+            sensor_msgs::PointCloud baselink_pcl;
+            sensor_msgs::convertPointCloud2ToPointCloud(baselink_pcl2, baselink_pcl);
+
+            // //  Transform the `pcl2_msg` to reference the `uv_light_link` then create a 
+            // // PointCloud object
+            sensor_msgs::PointCloud2 uv_light_pcl2 = transform_pointcloud(pcl2_msg, "uv_light_link");
+            sensor_msgs::PointCloud uv_light_pcl;
+            sensor_msgs::convertPointCloud2ToPointCloud(uv_light_pcl2, uv_light_pcl);
+
+            // // // Use a for loop to check if the coordinates in the baselink_pcl is in the region
+            for (size_t i = 0; i < uv_light_pcl.points.size(); ++i) {
+                const auto& uv_light_coord = uv_light_pcl.points[i];
+                const auto& base_coord = baselink_pcl.points[i];
+
+                /*
+                Include in_polygon_check here
+                */
+
+                // Calculate the angle (radians) between the z-axis vector and 
+                // uv flashlight point coordinates, `uv_light_coord`
+                double ray_length = sqrt(pow(uv_light_coord.x, 2) + pow(uv_light_coord.y, 2) + pow(uv_light_coord.z, 2));
+                double numerator = negative_z_arr[0] * uv_light_coord.x + negative_z_arr[1] * uv_light_coord.y + negative_z_arr[2] * uv_light_coord.z;
+                double denominator = magnitude_z_arr * ray_length;
+                double rad = acos(numerator / denominator);
+
+                if (rad < conical_bound) {
+                    octomap::OcTreeKey key;
+                    octomap::point3d pnt(base_coord.x, base_coord.y, base_coord.z);
+                    bool chk = tree.coordToKeyChecked(pnt, key)
+                }
+            }      
+            
+                  
+        }
       
     }
 
