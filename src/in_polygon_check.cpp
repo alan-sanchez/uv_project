@@ -4,7 +4,6 @@ https://www.geeksforgeeks.org/how-to-check-if-a-given-point-lies-inside-a-polygo
 */
 #include <bits/stdc++.h>
 #include <ros/ros.h>
-
 // #include "uv_project/in_polygon_check.h"
 
 using namespace std;
@@ -109,19 +108,19 @@ bool checkInside(Point poly[], int n, Point p)
 	return count & 1;
 }
 
-// Driver code
-int main()
-{
-	Point polygon[]
-		= { { 0, 0 }, { 10, 0 }, { 10, 10 }, { 0, 10 } };
-	Point p = { 5, 3 };
-	int n = 4;
+// // Driver code
+// int main()
+// {
+// 	Point polygon[]
+// 		= { { 0, 0 }, { 10, 0 }, { 10, 10 }, { 0, 10 } };
+// 	Point p = { 5, 3 };
+// 	int n = 4;
 
-	// Function call
-	if (checkInside(polygon, n, p))
-		cout << "Point is inside." << endl;
-	else
-		cout << "Point is outside.";
+// 	// Function call
+// 	if (checkInside(polygon, n, p))
+// 		cout << "Point is inside." << endl;
+// 	else
+// 		cout << "Point is outside.";
 
-	return 0;
-}
+// 	return 0;
+// }
