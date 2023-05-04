@@ -3,17 +3,21 @@ C++ version of python node: transform_accumulation_merge.py
 **/
 // // Import message types and other libraries
 #include <ros/ros.h>
+#include <fstream>
 #include <iostream>
 #include <string>
 #include <cmath>
 #include <set>
 
 #include <tf/tf.h>
+#include <tf/transform_datatypes.h>
 #include <tf/transform_listener.h>
 #include <tf2_ros/transform_listener.h>
 
 #include <octomap/octomap.h>
 #include <octomap/OcTree.h>
+#include <octomap_ros/conversions.h>
+#include <octomap_msgs/conversions.h>
 
 #include <sensor_msgs/PointCloud2.h>
 #include <sensor_msgs/PointCloud.h>
@@ -31,10 +35,10 @@ C++ version of python node: transform_accumulation_merge.py
 #include "uv_project/uv_model.h"
 // #include "uv_model/in_polygon_check.h"
 
-// #include <pcl/conversions.h>
+#include <pcl/conversions.h>
 #include <pcl_conversions/pcl_conversions.h>
-// #include <pcl_ros/transforms.h>
-// #include <pcl_ros/point_cloud.h>
+#include <pcl_ros/transforms.h>
+#include <pcl_ros/point_cloud.h>
 // #include <tf2_eigen/tf2_eigen.h>
 
 using namespace std;
@@ -69,7 +73,7 @@ class Accumulation {
     double prev_time;
     double uv_time_exposure;
 
-    map<vector<double>, double> acc_macp_dict;
+    map<vector<double>, double> acc_map_dict;
     map<vector<double>, int> cube_id_dict;
 
     public:
@@ -87,8 +91,8 @@ class Accumulation {
         octomap::OcTree tree(resolution);
 
         // // Create array that points in the negative z direction from the `uv_light_link`
-        negative_z_arr[0] = 0;
-        negative_z_arr[1] = 0;
+        negative_z_arr[0] =  0.0;
+        negative_z_arr[1] =  0.0;
         negative_z_arr[2] = -0.3;
 
         // // Compute the magnitude of the the neagtive z direction array
@@ -122,9 +126,9 @@ class Accumulation {
         marker.pose.orientation.w = 1.0;
 
         // // Create sensor array region
-        std::vector<std::vector<double>> region = {{0.72, 0.55}, {0.74, 0.55}, {0.74, -0.55}, {0.72, -0.55}};  // Sensor Array
-        // std::vector<std::vector<double>> region = {{0.70, 0.07}, {0.90, 0.07}, {0.90, -0.113}, {0.70, -0.113}};  // Cone
-        // std::vector<std::vector<double>> region = {{0.75, 0.05}, {0.90, 0.05}, {0.90, -0.09}, {0.75, -0.09}};  // Mug
+        vector<vector<double>> region = {{0.72, 0.55}, {0.74, 0.55}, {0.74, -0.55}, {0.72, -0.55}};  // Sensor Array
+        // vector<vector<double>> region = {{0.70, 0.07}, {0.90, 0.07}, {0.90, -0.113}, {0.70, -0.113}};  // Cone
+        // vector<vector<double>> region = {{0.75, 0.05}, {0.90, 0.05}, {0.90, -0.09}, {0.75, -0.09}};  // Mug
     }
 
 
@@ -149,7 +153,7 @@ class Accumulation {
             ros::param::get("resolution", resolution);
             octomap::OcTree tree(resolution);
             tree.clear(); 
-            acc_macp_dict.clear();
+            acc_map_dict.clear();
             cube_id_dict.clear();
             marker.action = visualization_msgs::Marker::DELETEALL;
             markerArray.markers.push_back(marker);
@@ -157,23 +161,46 @@ class Accumulation {
             marker.action = visualization_msgs::Marker::ADD;
             ros::Duration(0.2).sleep();
 
+            // Transform PointCloud2 object to reference the `base_link`
+            string target_frame = "base_link";
+            sensor_msgs::PointCloud2 temp_pcl2;
+            temp_pcl2 = transform_pointcloud(oct_center_pcl2,target_frame);
+            
+            // // create an `octomap::Pointcloud` object
             octomap::Pointcloud octomapCloud;
 
-            // // Iterate through the point cloud data
-            // for (int i = 0; i < cloudMsg->width * cloudMsg->height; i++) {
-            //     const float* data = reinterpret_cast<const float*>(&cloudMsg->data[i * cloudMsg->point_step]);
-            //     octomapCloud.push_back(data[0], data[1], data[2]);
-            // }
+            // // convert the Pointcloud2 message type to the octomap format
+            octomap::pointCloud2ToOctomap(oct_center_pcl2, octomapCloud);
 
+            // // Origin at base_link
+            octomap::point3d origin(0, 0, 0);
+            
+            // // Insert poincloud into octree
+            tree.insertPointCloud(octomapCloud, origin);
+
+            // Set command string
             command.data = str_msg.data;
         }
         else if (str_msg.data == "stop") {
             command.data = str_msg.data;
 
+            // // Open output file for writing
+            // std::ofstream output_file("output.csv");
 
+            // // Loop over dictionary keys and values
+            // for (auto const& [key, val] : acc_map_dict) {
+            //     // Write every key and value to file
+            //     std::vector<std::string> row = {std::to_string(key[0]), std::to_string(key[1]), std::to_string(key[2]), std::to_string(val)};
+            //     for (auto const& field : row) {
+            //         output_file << field << ",";
+            //     }
+            //     output_file << std::endl;
+            // }
+            // // Close output file
+            // output_file.close();
         }
-
     }
+
 
     /*
     Callback function that stores the PointCloud2 message of the combined
@@ -185,36 +212,28 @@ class Accumulation {
         cout << "made it here" << endl;
       
     }
+
+
+    sensor_msgs::PointCloud2 transform_pointcloud( const sensor_msgs::PointCloud2& pcl2_cloud, const std::string& target_frame) {
+        // // Loop until ROS is shutdown
+        while (ros::ok()) {
+            try {
+                // // Initialize a new pointcloud for the transformed output
+                sensor_msgs::PointCloud2 new_cloud;
+
+                // // Use pcl_ros library to transform pointcloud to target frame
+                pcl_ros::transformPointCloud(target_frame, pcl2_cloud, new_cloud, listener);
+                return new_cloud;
+            }
+            catch (tf::TransformException& ex) {
+                ROS_WARN("%s", ex.what());
+                ros::Duration(0.1).sleep();
+            }
+        }
+    }
 };
 
-
-sensor_msgs::PointCloud2 transform_pointcloud( const sensor_msgs::PointCloud& pcl_cloud, const std::string& target_frame) {
-    ros::Time now = ros::Time::now();
-    // pcl_cloud.header.stamp = now;
-
-    // sensor_msgs::PointCloud2 pcl_out;
-    // try
-    // {
-    //     listener.transformPointCloud("base_link", pcl_msg, pcl_out);
-    // }
-    // catch (tf::TransformExecptions& ex);
-    // {
-    //     ROS_ERROR("Transform error: %s", ex.what());
-    //     return;
-    // }
-
-    // while (ros::ok()) {
-    //     try {
-    //         sensor_msgs::PointCloud2 new_cloud;
-    //         pcl_ros::transformPointCloud(target_frame, pcl_cloud, new_cloud, listener);
-    //         return new_cloud;
-    //     }
-    //     catch (tf::TransformException& ex) {
-    //         ROS_WARN("%s", ex.what());
-    //         ros::Duration(0.1).sleep();
-    //     }
-    // }
-}
+   
 
 
 int main (int argc, char **argv)
