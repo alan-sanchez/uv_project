@@ -72,7 +72,6 @@ target_link_libraries(${PROJECT_NAME}
 )
 
 
-
 #############
 ## Install ##
 #############
@@ -103,6 +102,7 @@ install(DIRECTORY include/${PROJECT_NAME}/
 add_executable(accumulation
   src/accumulation.cpp
   src/uv_model.cpp
+  src/in_polygon_check.cpp
 )
 target_link_libraries(accumulation
   ${catkin_LIBRARIES}
