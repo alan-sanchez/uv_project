@@ -78,9 +78,8 @@ class Accumulation {
         map<vector<double>, double> acc_map_dict;
         map<vector<double>, int> cube_id_dict;
 
-        sensor_msgs::PointCloud2 transform_pointcloud(const sensor_msgs::PointCloud2& pcl2_cloud, const std::string& target_frame);
-        // double model(double x);
-
+        double radius = 1.0;
+        // uv_model(radius);
 
     public:
         Accumulation() {
@@ -262,17 +261,17 @@ class Accumulation {
                         // if (chk == "true") {
                             // // compute the UV dose for the conical `rad` value
                             double radius = 0.3 * tan(rad);
-                            // double ir = uv_model(radius) * 10; // multiply by 10 to convert from mW/cm^2 to W/m^2
+                            double ir = uv_model(radius) * 10; // multiply by 10 to convert from mW/cm^2 to W/m^2
                             double dist_ratio = pow(0.3, 2) / pow(ray_length, 2); // Inverse square law ratio
                             // double dose = dist_ratio * uv_time_exposure * ir;
 
                             // // Pull coordinates of cell key
                             // octomap::point3d pos = tree.keyToCoord(key);
                         }
-                    }
-                }             
-            }
+                }
+            }             
         }
+    
 
 
         sensor_msgs::PointCloud2 transform_pointcloud( const sensor_msgs::PointCloud2& pcl2_cloud, const std::string& target_frame) {
