@@ -40,7 +40,7 @@ C++ version of python node: transform_accumulation_merge.py
 // #include <tf2_eigen/tf2_eigen.h>
 
 #include "uv_project/uv_model.h"
-// #include "uv_project/in_polygon_check.h"
+#include "uv_project/in_polygon_check.h"
 
 using namespace std;
 
@@ -261,7 +261,7 @@ class Accumulation {
                         // if (chk == "true") {
                             // // compute the UV dose for the conical `rad` value
                             double radius = 0.3 * tan(rad);
-                            double ir = uv_model(radius) * 10; // multiply by 10 to convert from mW/cm^2 to W/m^2
+                            // double ir = uv_model(radius) * 10; // multiply by 10 to convert from mW/cm^2 to W/m^2
                             double dist_ratio = pow(0.3, 2) / pow(ray_length, 2); // Inverse square law ratio
                             // double dose = dist_ratio * uv_time_exposure * ir;
 
