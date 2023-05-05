@@ -1,7 +1,6 @@
 #ifndef IN_POLYGON_CHECK_H
 #define IN_POLYGON_CHECK_H
 
-#include <bits/stdc++.h>
 #include <iostream>
 
 struct Point {
@@ -18,6 +17,6 @@ int direction(Point, Point, Point);
 
 bool isIntersect(line, line);
 
-bool checkInside(Point, int , Point)
+bool checkInside(Point, int , Point);
 
 #endif

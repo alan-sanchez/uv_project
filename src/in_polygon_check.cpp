@@ -4,17 +4,11 @@ https://www.geeksforgeeks.org/how-to-check-if-a-given-point-lies-inside-a-polygo
 */
 #include <bits/stdc++.h>
 #include <ros/ros.h>
-// #include "uv_project/in_polygon_check.h"
+#include "uv_project/in_polygon_check.h"
 
 using namespace std;
 
-struct Point {
-	int x, y;
-};
 
-struct line {
-	Point p1, p2;
-};
 
 bool onLine(line l1, Point p)
 {
