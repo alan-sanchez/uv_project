@@ -46,35 +46,41 @@ using namespace std;
 
 class Accumulation {
     private:
-    // // Initialize attributes
-    ros::NodeHandle nh;
-    ros::Subscriber combined_pcl2_sub;
-    ros::Subscriber oct_center_pcl2_sub;
-    ros::Subscriber command_sub;
-    ros::Publisher MarkerArray_publisher;
+        // // Initialize variables, objects, and functions
+        ros::NodeHandle nh;
+        ros::Subscriber combined_pcl2_sub;
+        ros::Subscriber oct_center_pcl2_sub;
+        ros::Subscriber command_sub;
+        ros::Publisher MarkerArray_publisher;
 
-    std_msgs::Header header;
-    std_msgs::String command;
-    sensor_msgs::PointCloud2 oct_center_pcl2;
+        std_msgs::Header header;
+        std_msgs::String command;
+        sensor_msgs::PointCloud2 oct_center_pcl2;
 
-    visualization_msgs::Marker marker;
-    visualization_msgs::MarkerArray markerArray;
+        visualization_msgs::Marker marker;
+        visualization_msgs::MarkerArray markerArray;
 
-    tf::TransformListener listener;
-    // tf2_ros::TransformListener listener2;
+        tf::TransformListener listener;
+        // tf2_ros::TransformListener listener2;
 
-    octomap::Pointcloud octomapCloud;
+        octomap::Pointcloud octomapCloud;
+        // octomap::OcTree tree;
 
-    double resolution;
-    double negative_z_arr[3];
-    double magnitude_z_arr;
-    double conical_bound;
-    double required_dose;
-    double prev_time;
-    double uv_time_exposure;
 
-    map<vector<double>, double> acc_map_dict;
-    map<vector<double>, int> cube_id_dict;
+        double resolution;
+        double negative_z_arr[3];
+        double magnitude_z_arr;
+        double conical_bound;
+        double required_dose;
+        double prev_time;
+        double uv_time_exposure;
+
+        map<vector<double>, double> acc_map_dict;
+        map<vector<double>, int> cube_id_dict;
+
+        sensor_msgs::PointCloud2 transform_pointcloud(const sensor_msgs::PointCloud2& pcl2_cloud, const std::string& target_frame);
+        // double model(double x);
+
 
     public:
         Accumulation() {
@@ -189,7 +195,7 @@ class Accumulation {
 
                     // // Clear previous octree, markers, and dictrionaries
                     // // Intitialize OcTree class and acquire resolution
-                    tree.clear(); 
+                    // tree.clear(); 
                     acc_map_dict.clear();
                     cube_id_dict.clear();
                     marker.action = visualization_msgs::Marker::DELETEALL;
@@ -213,7 +219,7 @@ class Accumulation {
                     octomap::point3d origin(0, 0, 0);
                     
                     // // Insert poincloud into octree
-                    tree.insertPointCloud(octomapCloud, origin);
+                    // tree.insertPointCloud(octomapCloud, origin);
                     
                 } 
 
@@ -232,7 +238,7 @@ class Accumulation {
                 sensor_msgs::PointCloud uv_light_pcl;
                 sensor_msgs::convertPointCloud2ToPointCloud(uv_light_pcl2, uv_light_pcl);
 
-                // // // Use a for loop to check if the coordinates in the baselink_pcl is in the region
+                // // Use a for loop to check if the coordinates in the baselink_pcl is in the region
                 for (size_t i = 0; i < uv_light_pcl.points.size(); ++i) {
                     const auto& uv_light_coord = uv_light_pcl.points[i];
                     const auto& base_coord = baselink_pcl.points[i];
@@ -251,27 +257,17 @@ class Accumulation {
                     if (rad < conical_bound) {
                         octomap::OcTreeKey key;
                         octomap::point3d pnt(base_coord.x, base_coord.y, base_coord.z);
-                        bool chk = tree.coordToKeyChecked(pnt, key)
+                        // bool chk = tree.coordToKeyChecked(pnt, key)
 
-                        if chk {
-                            // compute the UV dose for the conical `rad` value
+                        // if (chk == "true") {
+                            // // compute the UV dose for the conical `rad` value
                             double radius = 0.3 * tan(rad);
-                            double ir = uv_model(radius) * 10; // multiply by 10 to convert from mW/cm^2 to W/m^2
+                            // double ir = uv_model(radius) * 10; // multiply by 10 to convert from mW/cm^2 to W/m^2
                             double dist_ratio = pow(0.3, 2) / pow(ray_length, 2); // Inverse square law ratio
-                            double dose = dist_ratio * time_exposure * ir;
+                            // double dose = dist_ratio * uv_time_exposure * ir;
 
-                            // Pull coordinates of cell key
-                            octomap::point3d pos = tree.keyToCoord(key);
-
-                            if (temp_dict.count(pos) > 0) {
-                                temp_dict[pos].push_back(dose);
-                            }
-                            else {
-                                std::vector<double> doses;
-                                doses.push_back(dose);
-                                temp_dict[pos] = doses;
-                            }
-
+                            // // Pull coordinates of cell key
+                            // octomap::point3d pos = tree.keyToCoord(key);
                         }
                     }
                 }             
