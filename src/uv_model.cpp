@@ -3,11 +3,6 @@ CPP program to find the irradiance value for
 a given distance, x, value
 */
 
-// Import message types and other libraries
-#include <iostream>
-#include <ros/ros.h>
-#include <vector>
-
 #include "uv_project/uv_model.h"
 
 using namespace std;
