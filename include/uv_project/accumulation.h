@@ -44,7 +44,6 @@
 
 using namespace std;
 
-
 class Accumulation {
     private:
         // // Initialize variables, objects, and functions
@@ -56,7 +55,15 @@ class Accumulation {
 
         std_msgs::Header header;
         std_msgs::String command;
+
         sensor_msgs::PointCloud2 oct_center_pcl2;
+        sensor_msgs::PointCloud2 temp_pcl2;
+        sensor_msgs::PointCloud2 baselink_pcl2;
+        sensor_msgs::PointCloud2 uv_light_pcl2;
+        sensor_msgs::PointCloud2 transformed_pcl2;
+        sensor_msgs::PointCloud baselink_pcl;
+        sensor_msgs::PointCloud uv_light_pcl;
+        
 
         visualization_msgs::Marker marker;
         visualization_msgs::MarkerArray markerArray;
@@ -66,12 +73,13 @@ class Accumulation {
 
         octomap::Pointcloud octomapCloud;
         octomap::OcTree tree;
-        // // Intitialize OcTree class and acquire resolution
-        // ros::param::get("resolution", resolution);
-        // double res = 0.01;
-        // octomap::OcTree tree(res);
+        octomap::OcTreeKey key;
+        octomap::point3d origin;
+        octomap::point3d point_in_conical_bound;
+        octomap::point3d key_coord;
 
-
+        uv_model irradiance;
+        Check in_poly;
 
         double resolution;
         double negative_z_arr[3];
@@ -80,12 +88,27 @@ class Accumulation {
         double required_dose;
         double prev_time;
         double uv_time_exposure;
+        double ray_length;
+        double numerator;
+        double denominator;
+        double rad;
+        double radius;
+        double ir;
+        double dist_ratio;
+        double dose;
 
+        int sides;
         map<vector<double>, double> acc_map_dict;
         map<vector<double>, int> cube_id_dict;
 
-        // double radius = 1.0;
-        // double irradiance = uv_model(radius);
+        // // Create polygon region
+        Check::Point polygon[4] =  {{0.72, 0.55}, {0.74, 0.55}, {0.74, -0.55}, {0.72, -0.55}};  // Sensor Array
+        //Check::Point polygon[] =  {{0.70, 0.07}, {0.90, 0.07}, {0.90, -0.113}, {0.70, -0.113}};  // Cone
+        //Check::Point polygon[] =  {{0.75, 0.05}, {0.90, 0.05}, {0.90, -0.09}, {0.75, -0.09}};  // Mug
+
+        // //
+        Check::Point point_for_in_polygon_check;
+
 
     public:
         Accumulation();
@@ -100,7 +123,5 @@ class Accumulation {
 
         //
         sensor_msgs::PointCloud2 transform_pointcloud( const sensor_msgs::PointCloud2& pcl2_cloud, const std::string& target_frame);
-
 };
-
 #endif
