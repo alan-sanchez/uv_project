@@ -4,6 +4,9 @@ C++ version of python node: transform_accumulation_merge.py
 
 #include "uv_project/accumulation.h"
 
+using namespace octomap;
+using namespace sensor_msgs;
+
 Accumulation::Accumulation() : tree(0.01){
     // // Initialize subscribers
     combined_pcl2_sub   = nh.subscribe("filtered_pcl2",               10, &Accumulation::callback_filtered_pcl2,   this);
@@ -12,10 +15,6 @@ Accumulation::Accumulation() : tree(0.01){
 
     // // Initialize publisher
     MarkerArray_publisher = nh.advertise<visualization_msgs::Marker>("accumulation_map", 10);
-
-    // // Intitialize OcTree class and acquire resolution
-    // ros::param::get("resolution", resolution);
-    // octomap::OcTree tree(resolution);
 
     // // Create array that points in the negative z direction from the `uv_light_link`
     negative_z_arr[0] =  0.0;
@@ -52,12 +51,12 @@ Accumulation::Accumulation() : tree(0.01){
     marker.scale.z = resolution;
     marker.pose.orientation.w = 1.0;
 
-    // // Create sensor array region
-    vector<vector<double>> region = {{0.72, 0.55}, {0.74, 0.55}, {0.74, -0.55}, {0.72, -0.55}};  // Sensor Array
-    // vector<vector<double>> region = {{0.70, 0.07}, {0.90, 0.07}, {0.90, -0.113}, {0.70, -0.113}};  // Cone
-    // vector<vector<double>> region = {{0.75, 0.05}, {0.90, 0.05}, {0.90, -0.09}, {0.75, -0.09}};  // Mug
+    origin = point3d(0,0,0);
 
+    // // 
+    sides = sizeof(polygon);
 }
+
 
 /*
 A function that stores the PointCloud2 message
@@ -101,21 +100,19 @@ void Accumulation::callback_command(const std_msgs::String& str_msg){
 
 /*
 Callback function that stores the PointCloud2 message of the combined
-filtered image and depth map. This function als transforms the coordinates
-from its original transform frame to the `base_link` and `uv_light_link`
+filtered image and depth map. This function als0 transforms the coordinates
+from its original transform frame to the `base_link` and the `uv_light_link`
 :param pcl2_msg: The PointCloud2 message
 */
 void Accumulation::callback_filtered_pcl2(const sensor_msgs::PointCloud2& pcl2_msg){
     if (command.data == "start") {
-
         // // This resets the all dictionaries, variables, and OcTree between
-        // // each arm execuation. 
+        // // each joint trajectory execution 
         if ((ros::Time::now().toSec() - prev_time) > 2.0) {
             prev_time = ros::Time::now().toSec();
             uv_time_exposure = 0;
 
-            // // Clear previous octree, markers, and dictrionaries
-            // // Intitialize OcTree class and acquire resolution
+            // // Clear previous octree, markers, and dictionaries
             tree.clear(); 
             acc_map_dict.clear();
             cube_id_dict.clear();
@@ -125,87 +122,83 @@ void Accumulation::callback_filtered_pcl2(const sensor_msgs::PointCloud2& pcl2_m
             marker.action = visualization_msgs::Marker::ADD;
             ros::Duration(0.2).sleep();
 
-            // Transform PointCloud2 object to reference the `base_link`
-            string target_frame = "base_link";
-            sensor_msgs::PointCloud2 temp_pcl2;
-            temp_pcl2 = transform_pointcloud(oct_center_pcl2,target_frame);
-            
-            // // create an `octomap::Pointcloud` object
-            octomap::Pointcloud octomapCloud;
-
-            // // convert the Pointcloud2 message type to the octomap format
-            octomap::pointCloud2ToOctomap(oct_center_pcl2, octomapCloud);
-
-            // // Origin at base_link
-            octomap::point3d origin(0, 0, 0);
-            
-            // // Insert poincloud into octree
-            tree.insertPointCloud(octomapCloud, origin);
-            
+            // // Transform PointCloud2 object to reference the `base_link`, then 
+            // // convert to the octomap format and insert into the octree.
+            temp_pcl2 = transform_pointcloud(oct_center_pcl2,"base_link");
+            pointCloud2ToOctomap(oct_center_pcl2, octomapCloud);
+            tree.insertPointCloud(octomapCloud, origin);  
         } 
-
         // // Create temporary dictionary
-        map<vector<double>, double> temp_dict;
+        map<point3d, vector<double>> temp_dict;
 
-        // // Transform the `pcl2_msg` to reference the `base_link` then create a 
-        // // PointCloud object 
-        sensor_msgs::PointCloud2 baselink_pcl2 = transform_pointcloud(pcl2_msg, "base_link");
-        sensor_msgs::PointCloud baselink_pcl;
-        sensor_msgs::convertPointCloud2ToPointCloud(baselink_pcl2, baselink_pcl);
+        // // Transform the `pcl2_msg` to reference the `base_link`. Then convert to a PointCloud object 
+        baselink_pcl2 = transform_pointcloud(pcl2_msg, "base_link");
+        convertPointCloud2ToPointCloud(baselink_pcl2, baselink_pcl);
 
-        // //  Transform the `pcl2_msg` to reference the `uv_light_link` then create a 
-        // // PointCloud object
-        sensor_msgs::PointCloud2 uv_light_pcl2 = transform_pointcloud(pcl2_msg, "uv_light_link");
-        sensor_msgs::PointCloud uv_light_pcl;
-        sensor_msgs::convertPointCloud2ToPointCloud(uv_light_pcl2, uv_light_pcl);
+        // // Transform the `pcl2_msg` to reference the `uv_light_link`. Then convert to a PointCloud object
+        uv_light_pcl2 = transform_pointcloud(pcl2_msg, "uv_light_link");
+        convertPointCloud2ToPointCloud(uv_light_pcl2, uv_light_pcl);
 
         // // Use a for loop to check if the coordinates in the baselink_pcl is in the region
         for (size_t i = 0; i < uv_light_pcl.points.size(); ++i) {
-            const auto& uv_light_coord = uv_light_pcl.points[i];
-            const auto& base_coord = baselink_pcl.points[i];
+            // cout << uv_light_pcl.points[i].x<< endl;
+            // // 
+            point_for_in_polygon_check = {baselink_pcl.points[i].x, baselink_pcl.points[i].y};
+            if (!in_poly.checkInside(polygon, sides, point_for_in_polygon_check)){
+                continue;
+            }
+            
+            // // Calculate the angle (radians) between the negative 
+            // // z-axis vector and UV light x,y, and z coordinates
+            ray_length = sqrt(pow(uv_light_pcl.points[i].x, 2) 
+                            + pow(uv_light_pcl.points[i].y, 2) 
+                            + pow(uv_light_pcl.points[i].z, 2));
+            
+            numerator = negative_z_arr[0] * uv_light_pcl.points[i].x
+                      + negative_z_arr[1] * uv_light_pcl.points[i].y 
+                      + negative_z_arr[2] * uv_light_pcl.points[i].z;
 
-            /*
-            Include in_polygon_check here
-            */
+            denominator = magnitude_z_arr * ray_length;
+            rad = acos(numerator / denominator);
 
-            // Calculate the angle (radians) between the z-axis vector and 
-            // uv flashlight point coordinates, `uv_light_coord`
-            double ray_length = sqrt(pow(uv_light_coord.x, 2) + pow(uv_light_coord.y, 2) + pow(uv_light_coord.z, 2));
-            double numerator = negative_z_arr[0] * uv_light_coord.x + negative_z_arr[1] * uv_light_coord.y + negative_z_arr[2] * uv_light_coord.z;
-            double denominator = magnitude_z_arr * ray_length;
-            double rad = acos(numerator / denominator);
-
+            // // 
             if (rad < conical_bound) {
-                octomap::OcTreeKey key;
-                octomap::point3d pnt(base_coord.x, base_coord.y, base_coord.z);
-                bool chk = tree.coordToKeyChecked(pnt, key);
+                point_in_conical_bound = point3d(baselink_pcl.points[i].x, 
+                                                 baselink_pcl.points[i].y, 
+                                                 baselink_pcl.points[i].z);
 
-                // if (chk == "true") {
+                if (tree.coordToKeyChecked(point_in_conical_bound, key)) {
                     // // compute the UV dose for the conical `rad` value
-                    double radius = 0.3 * tan(rad);
-                    // double ir = uv_model(radius) * 10; // multiply by 10 to convert from mW/cm^2 to W/m^2
-                    double dist_ratio = pow(0.3, 2) / pow(ray_length, 2); // Inverse square law ratio
-                    // double dose = dist_ratio * uv_time_exposure * ir;
+                    radius = 0.3 * tan(rad);
+                    ir = irradiance.model(radius) * 10; // multiply by 10 to convert from mW/cm^2 to W/m^2
+                    dist_ratio = pow(0.3, 2) / pow(ray_length, 2); // Inverse square law ratio
+                    dose = dist_ratio * uv_time_exposure * ir;
 
                     // // Pull coordinates of cell key
-                    // octomap::point3d pos = tree.keyToCoord(key);
-                }
-        }
-    }             
-}
+                    key_coord = tree.keyToCoord(key);
 
+                    // if (temp_dict.find(key_coord)!=temp_dict.end()) {
+                    //     cout << "made it here" << endl;
+                        // temp_dict[key_coord].push_back(dose);
+                        // return 1;
+                    // }
+                    //  else {
+                    //     temp_dict[key_coord] = vector<double>{dose};
+                    // }
+                }
+            }
+        } 
+    }            
+}
 
 
 sensor_msgs::PointCloud2 Accumulation::transform_pointcloud( const sensor_msgs::PointCloud2& pcl2_cloud, const std::string& target_frame) {
     // // Loop until ROS is shutdown
     while (ros::ok()) {
-        try {
-            // // Initialize a new pointcloud for the transformed output
-            sensor_msgs::PointCloud2 new_cloud;
-
+        try {          
             // // Use pcl_ros library to transform pointcloud to target frame
-            pcl_ros::transformPointCloud(target_frame, pcl2_cloud, new_cloud, listener);
-            return new_cloud;
+            pcl_ros::transformPointCloud(target_frame, pcl2_cloud, transformed_pcl2, listener);
+            return transformed_pcl2;
         }
         catch (tf::TransformException& ex) {
             ROS_WARN("%s", ex.what());
@@ -213,7 +206,6 @@ sensor_msgs::PointCloud2 Accumulation::transform_pointcloud( const sensor_msgs::
         }
     }
 }
-
 
 
 
