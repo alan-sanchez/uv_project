@@ -1,22 +1,29 @@
 #ifndef IN_POLYGON_CHECK_H
 #define IN_POLYGON_CHECK_H
 
+#include <bits/stdc++.h>
 #include <iostream>
 
-struct Point {
-	int x, y;
+using namespace std;
+
+class Check {		
+	public:
+		// // Declare and define Point struct
+		struct Point {
+			double x, y;
+		};
+
+		// // Declare and define Point struct
+		struct line {
+			Point p1, p2;
+		};
+
+		bool onLine(line l1, Point p);
+
+		int direction(Point a, Point b, Point c);
+
+		bool isIntersect(line l1, line l2);
+
+		bool checkInside(Point poly[], int n, Point p);
 };
-
-struct line {
-	Point p1, p2;
-};
-
-bool onLine(line, Point);
-
-int direction(Point, Point, Point);
-
-bool isIntersect(line, line);
-
-bool checkInside(Point, int , Point);
-
 #endif
