@@ -129,7 +129,8 @@ void Accumulation::callback_filtered_pcl2(const sensor_msgs::PointCloud2& pcl2_m
             tree.insertPointCloud(octomapCloud, origin);  
         } 
         // // Create temporary dictionary
-        map<point3d, vector<double>> temp_dict;
+        map< vector<double>, vector<double> > temp_dict;
+        vector<double> coord;
 
         // // Transform the `pcl2_msg` to reference the `base_link`. Then convert to a PointCloud object 
         baselink_pcl2 = transform_pointcloud(pcl2_msg, "base_link");
@@ -167,26 +168,60 @@ void Accumulation::callback_filtered_pcl2(const sensor_msgs::PointCloud2& pcl2_m
                                                  baselink_pcl.points[i].y, 
                                                  baselink_pcl.points[i].z);
 
-                if (tree.coordToKeyChecked(point_in_conical_bound, key)) {
+                if (tree.coordToKeyChecked(point_in_conical_bound, KeyChecked)) {
                     // // compute the UV dose for the conical `rad` value
                     radius = 0.3 * tan(rad);
                     ir = irradiance.model(radius) * 10; // multiply by 10 to convert from mW/cm^2 to W/m^2
                     dist_ratio = pow(0.3, 2) / pow(ray_length, 2); // Inverse square law ratio
                     dose = dist_ratio * uv_time_exposure * ir;
 
-                    // // Pull coordinates of cell key
-                    key_coord = tree.keyToCoord(key);
+                    // // Pull coordinates of KeyChecked cell and store them in a vector<double> type
+                    octomap_type_coord = tree.keyToCoord(KeyChecked);
+                    coord = {octomap_type_coord.x(), octomap_type_coord.y(), octomap_type_coord.z()};
 
-                    // if (temp_dict.find(key_coord)!=temp_dict.end()) {
-                    //     cout << "made it here" << endl;
-                        // temp_dict[key_coord].push_back(dose);
-                        // return 1;
-                    // }
-                    //  else {
-                    //     temp_dict[key_coord] = vector<double>{dose};
-                    // }
+                    if (temp_dict.find(coord)!=temp_dict.end()) {
+                        temp_dict[coord].push_back(dose);
+                    } else {
+                        temp_dict[coord] = vector<double>{dose};
+                    }
                 }
             }
+        } 
+
+        for (auto const& data : temp_dict) {
+
+            key = data.first;
+            value = data.second;
+
+            max_dose_value = *(max_element(value.begin(), value.end()));
+
+            // Update accumulation map dictionary
+            if (acc_map_dict.find(key)!=acc_map_dict.end()) {
+                acc_map_dict[key] += max_dose_value;
+            } else {
+                acc_map_dict[key] = max_dose_value;
+            }
+
+            // Update cube id dictionary
+            if (cube_id_dict.find(key)!=cube_id_dict.end()) {
+                marker.id = cube_id_dict[key];
+            } else{
+                cube_id_dict[key] = cube_id_dict.size();
+                marker.id = cube_id_dict[key];
+            }
+
+            // // // Update the color id based on UV values
+            // if (acc_map_dict[key] < 0.25 * required_dose) {
+            //     marker.color = std_msgs::ColorRGBA{1, 0, 0, 0.5};
+            // } else if (acc_map_dict[key] < 0.5 * required_dose) {
+            //     marker.color = std_msgs::ColorRGBA(1, 0.5, 0, 0.65);
+            // } else if (acc_map_dict[key] < 0.75 * required_dose) {
+            //     marker.color = std_msgs::ColorRGBA(1, 1, 0, 0.85);
+            // } else {
+            //     marker.color = std_msgs::ColorRGBA(0, 1, 0, 1);
+            // }
+
+
         } 
     }            
 }

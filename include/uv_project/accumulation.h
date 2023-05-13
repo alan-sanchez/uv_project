@@ -55,6 +55,7 @@ class Accumulation {
 
         std_msgs::Header header;
         std_msgs::String command;
+        std_msgs::ColorRGBA green;
 
         sensor_msgs::PointCloud2 oct_center_pcl2;
         sensor_msgs::PointCloud2 temp_pcl2;
@@ -73,14 +74,15 @@ class Accumulation {
 
         octomap::Pointcloud octomapCloud;
         octomap::OcTree tree;
-        octomap::OcTreeKey key;
+        octomap::OcTreeKey KeyChecked;
         octomap::point3d origin;
         octomap::point3d point_in_conical_bound;
-        octomap::point3d key_coord;
+        octomap::point3d octomap_type_coord;
 
         uv_model irradiance;
         Check in_poly;
 
+        int sides;
         double resolution;
         double negative_z_arr[3];
         double magnitude_z_arr;
@@ -96,8 +98,9 @@ class Accumulation {
         double ir;
         double dist_ratio;
         double dose;
-
-        int sides;
+        double max_dose_value;
+        vector<double> value;
+        vector<double> key;
         map<vector<double>, double> acc_map_dict;
         map<vector<double>, int> cube_id_dict;
 
