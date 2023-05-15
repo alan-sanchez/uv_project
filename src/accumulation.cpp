@@ -6,6 +6,9 @@ C++ version of python node: transform_accumulation_merge.py
 
 using namespace octomap;
 using namespace sensor_msgs;
+using namespace std_msgs;
+using namespace visualization_msgs;
+using namespace geometry_msgs;
 
 Accumulation::Accumulation() : tree(0.01){
     // // Initialize subscribers
@@ -14,7 +17,7 @@ Accumulation::Accumulation() : tree(0.01){
     command_sub         = nh.subscribe("command",                     10, &Accumulation::callback_command,         this);
 
     // // Initialize publisher
-    MarkerArray_publisher = nh.advertise<visualization_msgs::Marker>("accumulation_map", 10);
+    MarkerArray_publisher = nh.advertise<Marker>("accumulation_map", 10);
 
     // // Create array that points in the negative z direction from the `uv_light_link`
     negative_z_arr[0] =  0.0;
@@ -38,22 +41,23 @@ Accumulation::Accumulation() : tree(0.01){
     prev_time = ros::Time::now().toSec();
     uv_time_exposure = 0;
 
-    // Initialize header
+    // // Initialize header
     header.frame_id = "/base_link";
     header.stamp = ros::Time::now();
 
-    // Initialize marker
+    // // Initialize marker
     marker.header = header;
-    marker.type = visualization_msgs::Marker::CUBE_LIST;
-    marker.action = visualization_msgs::Marker::ADD;
+    marker.type = Marker::CUBE_LIST;
+    marker.action = Marker::ADD;
     marker.scale.x = resolution;
     marker.scale.y = resolution;
     marker.scale.z = resolution;
     marker.pose.orientation.w = 1.0;
 
+    // // Initialize origin for octree
     origin = point3d(0,0,0);
 
-    // // 
+    // // Define the number of sides from polygon
     sides = sizeof(polygon);
 }
 
@@ -62,7 +66,7 @@ Accumulation::Accumulation() : tree(0.01){
 A function that stores the PointCloud2 message
 :param pcl2_msg: The PointCloud2 message
 */
-void Accumulation::callback_oct_center_pcl2(const sensor_msgs::PointCloud2& pcl2_msg){
+void Accumulation::callback_oct_center_pcl2(const PointCloud2& pcl2_msg){
     oct_center_pcl2 = pcl2_msg;
 }
 
@@ -72,39 +76,39 @@ A function that transforms PointClouds to a desired transform frame
 then creates an octree from those points.
 :param str_msg: String message
 */
-void Accumulation::callback_command(const std_msgs::String& str_msg){
+void Accumulation::callback_command(const String& str_msg){
     if (str_msg.data == "start") {
-        // Set command string
+        // // Set command string
         command.data = str_msg.data;
     }
     else if (str_msg.data == "stop") {
         command.data = str_msg.data;
 
         // // Open output file for writing
-        // std::ofstream output_file("output.csv");
+        ofstream output_file("output.csv");
 
         // // Loop over dictionary keys and values
-        // for (auto const& [key, val] : acc_map_dict) {
-        //     // Write every key and value to file
-        //     std::vector<std::string> row = {std::to_string(key[0]), std::to_string(key[1]), std::to_string(key[2]), std::to_string(val)};
-        //     for (auto const& field : row) {
-        //         output_file << field << ",";
-        //     }
-        //     output_file << std::endl;
-        // }
+        for (auto const& data : acc_map_dict) {
+            output_key = data.first;
+            output_value = data.second;
+
+            // // Write every key and value to file
+            output_file << output_key[0] << "," << output_key[1] << "," << output_key[2] << "," << output_value << "\n";   
+        }
         // // Close output file
-        // output_file.close();
+        output_file.close();
     }
 }
 
 
 /*
 Callback function that stores the PointCloud2 message of the combined
+// #include <tf2_eigen/tf2_eigen.h>
 filtered image and depth map. This function als0 transforms the coordinates
 from its original transform frame to the `base_link` and the `uv_light_link`
 :param pcl2_msg: The PointCloud2 message
 */
-void Accumulation::callback_filtered_pcl2(const sensor_msgs::PointCloud2& pcl2_msg){
+void Accumulation::callback_filtered_pcl2(const PointCloud2& pcl2_msg){
     if (command.data == "start") {
         // // This resets the all dictionaries, variables, and OcTree between
         // // each joint trajectory execution 
@@ -116,10 +120,10 @@ void Accumulation::callback_filtered_pcl2(const sensor_msgs::PointCloud2& pcl2_m
             tree.clear(); 
             acc_map_dict.clear();
             cube_id_dict.clear();
-            marker.action = visualization_msgs::Marker::DELETEALL;
+            marker.action = Marker::DELETEALL;
             markerArray.markers.push_back(marker);
             MarkerArray_publisher.publish(markerArray);
-            marker.action = visualization_msgs::Marker::ADD;
+            marker.action = Marker::ADD;
             ros::Duration(0.2).sleep();
 
             // // Transform PointCloud2 object to reference the `base_link`, then 
@@ -142,8 +146,8 @@ void Accumulation::callback_filtered_pcl2(const sensor_msgs::PointCloud2& pcl2_m
 
         // // Use a for loop to check if the coordinates in the baselink_pcl is in the region
         for (size_t i = 0; i < uv_light_pcl.points.size(); ++i) {
-            // cout << uv_light_pcl.points[i].x<< endl;
-            // // 
+
+            // // Check to see if point is in the predefined disinfeciton region
             point_for_in_polygon_check = {baselink_pcl.points[i].x, baselink_pcl.points[i].y};
             if (!in_poly.checkInside(polygon, sides, point_for_in_polygon_check)){
                 continue;
@@ -162,12 +166,12 @@ void Accumulation::callback_filtered_pcl2(const sensor_msgs::PointCloud2& pcl2_m
             denominator = magnitude_z_arr * ray_length;
             rad = acos(numerator / denominator);
 
-            // // 
             if (rad < conical_bound) {
                 point_in_conical_bound = point3d(baselink_pcl.points[i].x, 
                                                  baselink_pcl.points[i].y, 
                                                  baselink_pcl.points[i].z);
 
+                // // If point is octree, return the key, "KeyChecked"
                 if (tree.coordToKeyChecked(point_in_conical_bound, KeyChecked)) {
                     // // compute the UV dose for the conical `rad` value
                     radius = 0.3 * tan(rad);
@@ -179,6 +183,7 @@ void Accumulation::callback_filtered_pcl2(const sensor_msgs::PointCloud2& pcl2_m
                     octomap_type_coord = tree.keyToCoord(KeyChecked);
                     coord = {octomap_type_coord.x(), octomap_type_coord.y(), octomap_type_coord.z()};
 
+                    // // store coordinates to temporary dictionary
                     if (temp_dict.find(coord)!=temp_dict.end()) {
                         temp_dict[coord].push_back(dose);
                     } else {
@@ -188,11 +193,12 @@ void Accumulation::callback_filtered_pcl2(const sensor_msgs::PointCloud2& pcl2_m
             }
         } 
 
+        // // Create marker array of cells
         for (auto const& data : temp_dict) {
 
+            // // Pull key and value and determine the largest value
             key = data.first;
             value = data.second;
-
             max_dose_value = *(max_element(value.begin(), value.end()));
 
             // Update accumulation map dictionary
@@ -210,24 +216,41 @@ void Accumulation::callback_filtered_pcl2(const sensor_msgs::PointCloud2& pcl2_m
                 marker.id = cube_id_dict[key];
             }
 
-            // // // Update the color id based on UV values
-            // if (acc_map_dict[key] < 0.25 * required_dose) {
-            //     marker.color = std_msgs::ColorRGBA{1, 0, 0, 0.5};
-            // } else if (acc_map_dict[key] < 0.5 * required_dose) {
-            //     marker.color = std_msgs::ColorRGBA(1, 0.5, 0, 0.65);
-            // } else if (acc_map_dict[key] < 0.75 * required_dose) {
-            //     marker.color = std_msgs::ColorRGBA(1, 1, 0, 0.85);
-            // } else {
-            //     marker.color = std_msgs::ColorRGBA(0, 1, 0, 1);
-            // }
+            // // Update the color id based on UV values
+            if (acc_map_dict[key] < 0.25 * required_dose) {
+                define_color(1,0,0,0.5);
+            } else if (acc_map_dict[key] < 0.5 * required_dose) {
+                 define_color(1, 0.5, 0, 0.65);
+            } else if (acc_map_dict[key] < 0.75 * required_dose) {
+                 define_color(1, 1, 0, 0.85);
+            } else {
+                 define_color(0, 1, 0, 1);
+            }
+            marker.color = cube_color;
 
+            // // Define x, y, and z attributes for marker_point
+            marker_point.x = key[0];
+            marker_point.y = key[1];
+            marker_point.z = key[2];
 
+            // // Append marker_point to marker (it's a `Marker` object)
+            marker.points.push_back(marker_point);
+
+            // // Publish the marker 
+            MarkerArray_publisher.publish(marker);
         } 
     }            
 }
 
 
-sensor_msgs::PointCloud2 Accumulation::transform_pointcloud( const sensor_msgs::PointCloud2& pcl2_cloud, const std::string& target_frame) {
+/*
+Function that transforms a PointCloud2 object to a target transform frame
+:param pcl2_cloud: PointCloud2 message type
+:param target_frame: String message type
+
+:returns transfomred_pcl2: PountCloud2 message type
+*/
+PointCloud2 Accumulation::transform_pointcloud( const PointCloud2& pcl2_cloud, const string& target_frame) {
     // // Loop until ROS is shutdown
     while (ros::ok()) {
         try {          
@@ -242,14 +265,26 @@ sensor_msgs::PointCloud2 Accumulation::transform_pointcloud( const sensor_msgs::
     }
 }
 
-
+/*
+Function that defines the r, g, b, and a values for `ColorRGBA` object, cube_color
+:param r: double message type
+:param g: double message type
+:param b: double message type
+:param a: double message type
+*/
+void Accumulation::define_color(const double r, const double g, const double b, const double a) {
+    cube_color.r = r;
+    cube_color.g = g;
+    cube_color.b = b;
+    cube_color.a = a;
+}
 
 int main (int argc, char **argv){
     // // Initialize the node
     ros::init(argc, argv, "accumulation");
     // ros::NodeHandle nh;
 
-    // // Instantiate TransformPCL object
+    // // Instantiate Accumulation object
     Accumulation obj;
 
     // // Give control over to ROS
