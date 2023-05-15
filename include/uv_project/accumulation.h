@@ -37,7 +37,6 @@
 #include <pcl_conversions/pcl_conversions.h>
 #include <pcl_ros/transforms.h>
 #include <pcl_ros/point_cloud.h>
-// #include <tf2_eigen/tf2_eigen.h>
 
 #include "uv_project/uv_model.h"
 #include "uv_project/in_polygon_check.h"
@@ -55,7 +54,7 @@ class Accumulation {
 
         std_msgs::Header header;
         std_msgs::String command;
-        std_msgs::ColorRGBA green;
+        std_msgs::ColorRGBA cube_color;
 
         sensor_msgs::PointCloud2 oct_center_pcl2;
         sensor_msgs::PointCloud2 temp_pcl2;
@@ -65,12 +64,12 @@ class Accumulation {
         sensor_msgs::PointCloud baselink_pcl;
         sensor_msgs::PointCloud uv_light_pcl;
         
-
         visualization_msgs::Marker marker;
         visualization_msgs::MarkerArray markerArray;
 
         tf::TransformListener listener;
-        // tf2_ros::TransformListener listener2;
+
+        geometry_msgs::Point marker_point;
 
         octomap::Pointcloud octomapCloud;
         octomap::OcTree tree;
@@ -99,6 +98,9 @@ class Accumulation {
         double dist_ratio;
         double dose;
         double max_dose_value;
+        double r; double g; double b; double a;
+        double output_value;
+        vector<double> output_key;
         vector<double> value;
         vector<double> key;
         map<vector<double>, double> acc_map_dict;
@@ -109,22 +111,19 @@ class Accumulation {
         //Check::Point polygon[] =  {{0.70, 0.07}, {0.90, 0.07}, {0.90, -0.113}, {0.70, -0.113}};  // Cone
         //Check::Point polygon[] =  {{0.75, 0.05}, {0.90, 0.05}, {0.90, -0.09}, {0.75, -0.09}};  // Mug
 
-        // //
         Check::Point point_for_in_polygon_check;
-
 
     public:
         Accumulation();
-        // 
+
         void callback_oct_center_pcl2(const sensor_msgs::PointCloud2& pcl2_msg);
 
-        //
         void callback_command(const std_msgs::String& str_msg);
 
-        //
         void callback_filtered_pcl2(const sensor_msgs::PointCloud2& pcl2_msg);
 
-        //
+        void define_color(const double r, const double g, const double b, const double a);
+
         sensor_msgs::PointCloud2 transform_pointcloud( const sensor_msgs::PointCloud2& pcl2_cloud, const std::string& target_frame);
 };
 #endif
