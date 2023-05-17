@@ -17,7 +17,7 @@ Accumulation::Accumulation() : tree(0.01){
     command_sub         = nh.subscribe("command",                     10, &Accumulation::callback_command,         this);
 
     // // Initialize publisher
-    MarkerArray_publisher = nh.advertise<Marker>("accumulation_map", 10);
+    MarkerArray_publisher = nh.advertise<MarkerArray>("accumulation_map", 10);
 
     // // Create array that points in the negative z direction from the `uv_light_link`
     negative_z_arr[0] =  0.0;
@@ -253,6 +253,7 @@ Function that transforms a PointCloud2 object to a target transform frame
 PointCloud2 Accumulation::transform_pointcloud( const PointCloud2& pcl2_cloud, const string& target_frame) {
     // // Loop until ROS is shutdown
     while (ros::ok()) {
+        // pcl2_cloud.header.stamp = ros::Time(0); //::now().toSec();
         try {          
             // // Use pcl_ros library to transform pointcloud to target frame
             pcl_ros::transformPointCloud(target_frame, pcl2_cloud, transformed_pcl2, listener);
