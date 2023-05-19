@@ -128,8 +128,8 @@ void Accumulation::callback_filtered_pcl2(const PointCloud2& pcl2_msg){
 
             // // Transform PointCloud2 object to reference the `base_link`, then 
             // // convert to the octomap format and insert into the octree.
-            temp_pcl2 = transform_pointcloud(oct_center_pcl2,"base_link");
-            pointCloud2ToOctomap(oct_center_pcl2, octomapCloud);
+            temp_pcl2 = transform_PointCloud2(oct_center_pcl2,"base_link");
+            pointCloud2ToOctomap(temp_pcl2, octomapCloud);
             tree.insertPointCloud(octomapCloud, origin);  
         } 
         // // Create temporary dictionary
@@ -137,11 +137,11 @@ void Accumulation::callback_filtered_pcl2(const PointCloud2& pcl2_msg){
         vector<double> coord;
 
         // // Transform the `pcl2_msg` to reference the `base_link`. Then convert to a PointCloud object 
-        baselink_pcl2 = transform_pointcloud(pcl2_msg, "base_link");
+        baselink_pcl2 = transform_PointCloud2(pcl2_msg, "base_link");
         convertPointCloud2ToPointCloud(baselink_pcl2, baselink_pcl);
 
         // // Transform the `pcl2_msg` to reference the `uv_light_link`. Then convert to a PointCloud object
-        uv_light_pcl2 = transform_pointcloud(pcl2_msg, "uv_light_link");
+        uv_light_pcl2 = transform_PointCloud2(pcl2_msg, "uv_light_link");
         convertPointCloud2ToPointCloud(uv_light_pcl2, uv_light_pcl);
 
         // // Use a for loop to check if the coordinates in the baselink_pcl is in the region
@@ -173,6 +173,7 @@ void Accumulation::callback_filtered_pcl2(const PointCloud2& pcl2_msg){
 
                 // // If point is octree, return the key, "KeyChecked"
                 if (tree.coordToKeyChecked(point_in_conical_bound, KeyChecked)) {
+                    // cout<<"In octree"<<endl;
                     // // compute the UV dose for the conical `rad` value
                     radius = 0.3 * tan(rad);
                     ir = irradiance.model(radius) * 10; // multiply by 10 to convert from mW/cm^2 to W/m^2
@@ -189,9 +190,35 @@ void Accumulation::callback_filtered_pcl2(const PointCloud2& pcl2_msg){
                     } else {
                         temp_dict[coord] = vector<double>{dose};
                     }
+                } else {
+                    cout<<"Not in octree"<<endl;
                 }
             }
         } 
+
+////////////////////////////////////// TEST ///////////////////////////////////////////////////////
+
+
+        // auto node = tree.search(point_in_conical_bound);
+
+        // // Need to check if it's a NULL pointer (outside of the tree)
+        // cout << point_in_conical_bound << ": ";
+        // if (node == NULL) 
+        //     cout<< "unknown space" << endl;
+        // else {
+        //     // Pointer is non-null, so find if the node is occupied.
+        //     bool occ = tree.isNodeOccupied(node);
+
+        //     if (occ)
+        //         cout << "occupied" << endl;
+        //     else
+        //         cout << "unoccupied" << endl;
+        // }
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////
+
+
 
         // // Create marker array of cells
         for (auto const& data : temp_dict) {
@@ -239,6 +266,9 @@ void Accumulation::callback_filtered_pcl2(const PointCloud2& pcl2_msg){
             // // Publish the marker 
             MarkerArray_publisher.publish(marker);
         } 
+
+        uv_time_exposure = ros::Time::now().toSec() - prev_time;
+        prev_time = ros::Time::now().toSec();
     }            
 }
 
@@ -250,7 +280,7 @@ Function that transforms a PointCloud2 object to a target transform frame
 
 :returns transfomred_pcl2: PountCloud2 message type
 */
-PointCloud2 Accumulation::transform_pointcloud( const PointCloud2& pcl2_cloud, const string& target_frame) {
+PointCloud2 Accumulation::transform_PointCloud2( const PointCloud2& pcl2_cloud, const string& target_frame) {
     // // Loop until ROS is shutdown
     while (ros::ok()) {
         // pcl2_cloud.header.stamp = ros::Time(0); //::now().toSec();

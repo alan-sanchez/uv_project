@@ -77,6 +77,8 @@ class Accumulation {
         octomap::point3d origin;
         octomap::point3d point_in_conical_bound;
         octomap::point3d octomap_type_coord;
+        octomap::OcTreeNode node;
+
 
         uv_model irradiance;
         Check in_poly;
@@ -124,6 +126,9 @@ class Accumulation {
 
         void define_color(const double r, const double g, const double b, const double a);
 
-        sensor_msgs::PointCloud2 transform_pointcloud( const sensor_msgs::PointCloud2& pcl2_cloud, const std::string& target_frame);
+        sensor_msgs::PointCloud2 transform_PointCloud2( const sensor_msgs::PointCloud2& pcl2_cloud, const std::string& target_frame);
+
+        sensor_msgs::PointCloud transform_PointCloud( const sensor_msgs::PointCloud& pcl_cloud, const std::string& target_frame);
+
 };
 #endif
