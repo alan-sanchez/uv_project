@@ -61,8 +61,14 @@ class Accumulation {
         sensor_msgs::PointCloud2 baselink_pcl2;
         sensor_msgs::PointCloud2 uv_light_pcl2;
         sensor_msgs::PointCloud2 transformed_pcl2;
+        sensor_msgs::PointCloud transformed_pcl;
         sensor_msgs::PointCloud baselink_pcl;
         sensor_msgs::PointCloud uv_light_pcl;
+
+        pcl::PointCloud<pcl::PointXYZ> pcl_cloud_xyz;
+        pcl::PointCloud<pcl::PointXYZ> transformed_cloud;
+        pcl::PointCloud<pcl::PointXYZ> uv_light_cloud;
+        pcl::PointCloud<pcl::PointXYZ> baselink_cloud;
         
         visualization_msgs::Marker marker;
         visualization_msgs::MarkerArray markerArray;
@@ -77,13 +83,14 @@ class Accumulation {
         octomap::point3d origin;
         octomap::point3d point_in_conical_bound;
         octomap::point3d octomap_type_coord;
-        octomap::OcTreeNode node;
+        octomap::OcTreeNode* node;
 
 
         uv_model irradiance;
         Check in_poly;
 
         int sides;
+        bool occ;
         double resolution;
         double negative_z_arr[3];
         double magnitude_z_arr;
@@ -128,7 +135,7 @@ class Accumulation {
 
         sensor_msgs::PointCloud2 transform_PointCloud2( const sensor_msgs::PointCloud2& pcl2_cloud, const std::string& target_frame);
 
-        sensor_msgs::PointCloud transform_PointCloud( const sensor_msgs::PointCloud& pcl_cloud, const std::string& target_frame);
+        pcl::PointCloud<pcl::PointXYZ> transform_PointCloud(const pcl::PointCloud<pcl::PointXYZ>& pcl_cloud, const string& target_frame);
 
 };
 #endif
