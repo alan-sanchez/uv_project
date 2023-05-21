@@ -85,7 +85,6 @@ class Accumulation {
         octomap::point3d octomap_type_coord;
         octomap::OcTreeNode* node;
 
-
         uv_model irradiance;
         Check in_poly;
 

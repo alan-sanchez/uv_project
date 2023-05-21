@@ -93,8 +93,8 @@ class TransformPCL(object):
         self.markerArray = MarkerArray()
 
         ## Create sensor array region 
-        #self.region = [[0.72, 0.55], [0.74, 0.55], [0.74, -0.55], [0.72, -0.55]]   # Sensor Array
-        self.region = [[0.70, 0.07], [0.90, 0.07], [0.90, -.113], [0.70, -.113]]  # Cone
+        self.region = [[0.72, 0.55], [0.74, 0.55], [0.74, -0.55], [0.72, -0.55]]   # Sensor Array
+        #self.region = [[0.70, 0.07], [0.90, 0.07], [0.90, -.113], [0.70, -.113]]  # Cone
         #self.region = [[0.75, 0.05], [0.90, 0.05], [0.90, -0.09], [0.75, -0.09]]  # Mug
         self.line = geometry.LineString(self.region)
         self.polygon = geometry.Polygon(self.line)
@@ -147,7 +147,8 @@ class TransformPCL(object):
                                       base_link_center_pcl.points[i].z]
 
             ## Insert a 3D scan into the the tree
-            self.octree.insertPointCloud(pointcloud = arr, origin = np.array([0, 0, 0], dtype=float)) # self.octree.writeBinary(b"before.bt")
+            self.octree.insertPointCloud(pointcloud = arr, origin = np.array([0, 0, 0], dtype=float)) 
+            self.octree.writeBinary(b"before.bt")
 
             ## Set command
             self.command = str_msg.data      
@@ -176,6 +177,7 @@ class TransformPCL(object):
         :param pcl2_msg: The PointCloud2 message type.
         """
         if self.command == "start":
+            start_time= rospy.get_time()
 
             ## Initialize a new point cloud message type to store position data.
             pcl_cloud = PointCloud()
@@ -204,6 +206,8 @@ class TransformPCL(object):
             ## Create temporary empty lists and execute for loop to temporary uv dose map
             temp_dict = dict()
 
+            # count = 0
+
             for uv_light_coord, base_coord in zip(uv_light_pcl.points, baselink_pcl.points):
                 ## Check if the base_coord is in the defined region    
                 point = geometry.Point(base_coord.x,base_coord.y)
@@ -219,7 +223,10 @@ class TransformPCL(object):
 
                 if rad < self.bound:
                     chk, key = self.octree.coordToKeyChecked(np.array([base_coord.x, base_coord.y, base_coord.z]))
-                    # print(chk)
+                    # if chk == False:
+                    #     count += 1
+
+
                     if chk:
                         ## compute the UV dose for the conical `rad` value
                         radius = 0.3 * math.tan(rad)
@@ -234,7 +241,7 @@ class TransformPCL(object):
                             temp_dict[pos].append(dose)     
                         else:
                             temp_dict[pos] = [dose,]
-
+            print(rospy.get_time() - start_time)
             ## Create marker array of cells
             for pose_key in temp_dict:
                 # Calculate Dose

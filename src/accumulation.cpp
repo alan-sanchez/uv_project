@@ -141,7 +141,6 @@ void Accumulation::callback_filtered_pcl2(const PointCloud2& pcl2_msg){
 
     //////////////////////////////////// Method 1 //////////////////////////////////////////////
 
-
         // // Transform the `pcl2_msg` to reference the `base_link`. Then convert to a PointCloud object 
         baselink_pcl2 = transform_PointCloud2(pcl2_msg, "base_link");
         convertPointCloud2ToPointCloud(baselink_pcl2, baselink_pcl);
@@ -208,7 +207,6 @@ void Accumulation::callback_filtered_pcl2(const PointCloud2& pcl2_msg){
                 }
             }
         } 
-
 
      //////////////////////////////////// Method 2 /////////////////////////////////////////////////
 
@@ -288,7 +286,6 @@ void Accumulation::callback_filtered_pcl2(const PointCloud2& pcl2_msg){
 
      ////////////////////////////// Method 3 //////////////////////////////////////////////////////// 
 
-
         // pcl::fromROSMsg(pcl2_msg, pcl_cloud_xyz);
         // uv_light_cloud = transform_PointCloud(pcl_cloud_xyz, "uv_light_link");
 
@@ -355,8 +352,6 @@ void Accumulation::callback_filtered_pcl2(const PointCloud2& pcl2_msg){
         //     }       
         //     // cout<<node->setValue()<<endl;
         // } 
-
-
      /////////////////////////////// Finished /////////////////////////////////////////////////////
         double final_time = ros::Time::now().toSec();
         cout<<"Time per iterations: "<<final_time-start_time << endl;
