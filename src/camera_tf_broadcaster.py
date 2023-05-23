@@ -38,7 +38,7 @@ class Broadcaster():
         ## Set pose values to transform
         self.camera.transform.translation.x = -0.09
         self.camera.transform.translation.y =  0.0175
-        self.camera.transform.translation.z = -0.063
+        self.camera.transform.translation.z = -0.0725
         q = tf.transformations.quaternion_from_euler(0,math.pi/2,0)
         self.camera.transform.rotation.x = q[0]
         self.camera.transform.rotation.y = q[1]
