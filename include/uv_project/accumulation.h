@@ -8,6 +8,7 @@
 #include <cmath>
 #include <map>
 #include <set>
+#include <omp.h>
 
 #include <tf/tf.h>
 #include <tf/transform_datatypes.h>
@@ -51,10 +52,12 @@ class Accumulation {
         ros::Subscriber oct_center_pcl2_sub;
         ros::Subscriber command_sub;
         ros::Publisher MarkerArray_publisher;
+        ros::Publisher Marker_publisher;
 
         std_msgs::Header header;
         std_msgs::String command;
         std_msgs::ColorRGBA cube_color;
+        std_msgs::ColorRGBA color;
 
         sensor_msgs::PointCloud2 oct_center_pcl2;
         sensor_msgs::PointCloud2 temp_pcl2;
@@ -65,17 +68,10 @@ class Accumulation {
         sensor_msgs::PointCloud baselink_pcl;
         sensor_msgs::PointCloud uv_light_pcl;
 
-        pcl::PointCloud<pcl::PointXYZ> pcl_cloud_xyz;
-        pcl::PointCloud<pcl::PointXYZ> transformed_cloud;
-        pcl::PointCloud<pcl::PointXYZ> uv_light_cloud;
-        pcl::PointCloud<pcl::PointXYZ> baselink_cloud;
-        
         visualization_msgs::Marker marker;
         visualization_msgs::MarkerArray markerArray;
 
         tf::TransformListener listener;
-
-        geometry_msgs::Point marker_point;
 
         octomap::Pointcloud octomapCloud;
         octomap::OcTree tree;
@@ -90,7 +86,6 @@ class Accumulation {
 
         int sides;
         bool occ;
-        double resolution;
         double negative_z_arr[3];
         double magnitude_z_arr;
         double conical_bound;
@@ -130,11 +125,8 @@ class Accumulation {
 
         void callback_filtered_pcl2(const sensor_msgs::PointCloud2& pcl2_msg);
 
-        void define_color(const double r, const double g, const double b, const double a);
+        std_msgs::ColorRGBA define_color(const double r, const double g, const double b, const double a);
 
         sensor_msgs::PointCloud2 transform_PointCloud2( const sensor_msgs::PointCloud2& pcl2_cloud, const std::string& target_frame);
-
-        pcl::PointCloud<pcl::PointXYZ> transform_PointCloud(const pcl::PointCloud<pcl::PointXYZ>& pcl_cloud, const string& target_frame);
-
 };
 #endif
