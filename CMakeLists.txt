@@ -23,6 +23,8 @@ find_package(pcl_ros REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(octomap REQUIRED)
 find_package(octomap_msgs REQUIRED)
+find_package(OpenMP REQUIRED)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 
 
 
@@ -39,7 +41,7 @@ catkin_package(
   INCLUDE_DIRS include
   LIBRARIES uv_project
   CATKIN_DEPENDS roscpp rospy std_msgs pcls_msgs octomap_msgs octomap_ros
-  DEPENDS EIGEN3 PCL octomap
+  DEPENDS EIGEN3 PCL octomap 
 )
 
 ###########
@@ -96,4 +98,5 @@ target_link_libraries(accumulation
   ${catkin_LIBRARIES}
   ${OCTOMAP_LIBRARIES}
   ${pcl_ros_LIBRARIES}
+  ${OpenMP_CXX_LIBRARIES}
 )
