@@ -17,8 +17,8 @@ Accumulation::Accumulation() : tree(0.01){
     command_sub         = nh.subscribe("command",                     10, &Accumulation::callback_command,         this);
 
     // // Initialize publisher
-    MarkerArray_publisher = nh.advertise<MarkerArray>("accumulation_map", 10);
-    // Marker_publisher = nh.advertise<Marker>("UV_dose_map", 10);
+    // MarkerArray_publisher = nh.advertise<MarkerArray>("accumulation_map", 10);
+    Marker_publisher = nh.advertise<Marker>("UV_dose_map", 10);
 
     // // Create array that points in the negative z direction from the `uv_light_link`
     negative_z_arr[0] =  0.0;
@@ -48,7 +48,7 @@ Accumulation::Accumulation() : tree(0.01){
 
     // // Initialize marker
     marker.header = header;
-    marker.type = Marker::CUBE_LIST;
+    marker.type = Marker::CUBE;
     marker.action = Marker::ADD;
     marker.scale.x = 0.01;
     marker.scale.y = 0.01;
@@ -60,6 +60,8 @@ Accumulation::Accumulation() : tree(0.01){
 
     // // Define the number of sides from polygon
     sides = sizeof(polygon);
+
+    
 }
 
 
@@ -121,9 +123,9 @@ void Accumulation::callback_filtered_pcl2(const PointCloud2& pcl2_msg){
             acc_map_dict.clear();
             cube_id_dict.clear();
             marker.action = Marker::DELETEALL;
-            markerArray.markers.push_back(marker);
-            MarkerArray_publisher.publish(markerArray);
-            // Marker_publisher.publish(marker);
+            // markerArray.markers.push_back(marker);
+            // MarkerArray_publisher.publish(markerArray);
+            Marker_publisher.publish(marker);
             marker.action = Marker::ADD;
             ros::Duration(0.2).sleep();
 
@@ -144,7 +146,8 @@ void Accumulation::callback_filtered_pcl2(const PointCloud2& pcl2_msg){
         // // Transform the `pcl2_msg` to reference the `uv_light_link`. Then convert to a PointCloud object
         uv_light_pcl2 = transform_PointCloud2(pcl2_msg, "uv_light_link");
         convertPointCloud2ToPointCloud(uv_light_pcl2, uv_light_pcl);
-
+        // // 
+        omp_set_num_threads(2);
         #pragma omp parallel for
         // // Use a for loop to check if the coordinates in the baselink_pcl is in the region
         for (size_t i = 0; i < uv_light_pcl.points.size(); ++i) {
@@ -152,62 +155,62 @@ void Accumulation::callback_filtered_pcl2(const PointCloud2& pcl2_msg){
             // // Check to see if point is in the predefined disinfeciton region
             point_for_in_polygon_check = {baselink_pcl.points[i].x, baselink_pcl.points[i].y};
             if (!in_poly.checkInside(polygon, sides, point_for_in_polygon_check)){
-                continue;
-            }
             
-            // // Calculate the angle (radians) between the negative 
-            // // z-axis vector and UV light x,y, and z coordinates
-            ray_length = sqrt(pow(uv_light_pcl.points[i].x, 2) 
-                            + pow(uv_light_pcl.points[i].y, 2) 
-                            + pow(uv_light_pcl.points[i].z, 2));
             
-            numerator = negative_z_arr[0] * uv_light_pcl.points[i].x
-                      + negative_z_arr[1] * uv_light_pcl.points[i].y 
-                      + negative_z_arr[2] * uv_light_pcl.points[i].z;
+                // // Calculate the angle (radians) between the negative 
+                // // z-axis vector and UV light x,y, and z coordinates
+                ray_length = sqrt(pow(uv_light_pcl.points[i].x, 2) 
+                                + pow(uv_light_pcl.points[i].y, 2) 
+                                + pow(uv_light_pcl.points[i].z, 2));
+                
+                numerator = negative_z_arr[0] * uv_light_pcl.points[i].x
+                          + negative_z_arr[1] * uv_light_pcl.points[i].y 
+                          + negative_z_arr[2] * uv_light_pcl.points[i].z;
 
-            denominator = magnitude_z_arr * ray_length;
-            rad = acos(numerator / denominator);
+                denominator = magnitude_z_arr * ray_length;
+                rad = acos(numerator / denominator);
 
-            if (rad < conical_bound) {
-                point_in_conical_bound = point3d(baselink_pcl.points[i].x, 
-                                                 baselink_pcl.points[i].y, 
-                                                 baselink_pcl.points[i].z);
+                if (rad < conical_bound) {
+                    point_in_conical_bound = point3d(baselink_pcl.points[i].x, 
+                                                    baselink_pcl.points[i].y, 
+                                                    baselink_pcl.points[i].z);
+                                                    
+                    // // Pull coordinates of KeyChecked cell and store them in a vector<double> type
+                    tree.coordToKeyChecked(point_in_conical_bound, KeyChecked);
+                    octomap_type_coord = tree.keyToCoord(KeyChecked);
 
-                                                 
-                // // Pull coordinates of KeyChecked cell and store them in a vector<double> type
-                tree.coordToKeyChecked(point_in_conical_bound, KeyChecked);
-                octomap_type_coord = tree.keyToCoord(KeyChecked);
+                    // // 
+                    node = tree.search(KeyChecked);
+                    if (node == NULL) {
+                        continue;
+                    }
 
-                // // 
-                node = tree.search(KeyChecked);
-                if (node == NULL) {
-                    continue;
-                }
+                    // // 
+                    occ = tree.isNodeOccupied(node);
 
-                // // 
-                occ = tree.isNodeOccupied(node);
+                    // // If point is octree, return the key, "KeyChecked"
+                    if (occ) {
+                        // // compute the UV dose for the conical `rad` value
+                        radius = 0.3 * tan(rad);
+                        ir = irradiance.model(radius) * 10; // multiply by 10 to convert from mW/cm^2 to W/m^2
+                        dist_ratio = pow(0.3, 2) / pow(ray_length, 2); // Inverse square law ratio
+                        dose = dist_ratio * uv_time_exposure * ir;
 
-                // // If point is octree, return the key, "KeyChecked"
-                if (occ) {
-                    // // compute the UV dose for the conical `rad` value
-                    radius = 0.3 * tan(rad);
-                    ir = irradiance.model(radius) * 10; // multiply by 10 to convert from mW/cm^2 to W/m^2
-                    dist_ratio = pow(0.3, 2) / pow(ray_length, 2); // Inverse square law ratio
-                    dose = dist_ratio * uv_time_exposure * ir;
+                        // //
+                        coord = {octomap_type_coord.x(), octomap_type_coord.y(), octomap_type_coord.z()};
 
-                    // //
-                    coord = {octomap_type_coord.x(), octomap_type_coord.y(), octomap_type_coord.z()};
-
-                    // // store coordinates to temporary dictionary
-                    if (temp_dict.find(coord)!=temp_dict.end()) {
-                        temp_dict[coord].push_back(dose);
-                    } else {
-                        temp_dict[coord] = vector<double>{dose};
+                        // // store coordinates to temporary dictionary
+                        if (temp_dict.find(coord)!=temp_dict.end()) {
+                            temp_dict[coord].push_back(dose);
+                        } else {
+                            temp_dict[coord] = vector<double>{dose};
+                        }
                     }
                 }
             }
         } 
         
+        // // #pragma omp parallel for
         // // Create marker array of cells
         for (auto const& data : temp_dict) {
             // // Pull key and value and determine the largest value
@@ -242,21 +245,18 @@ void Accumulation::callback_filtered_pcl2(const PointCloud2& pcl2_msg){
             }
             marker.color = cube_color;
 
-            // // Define x, y, and z attributes for marker
-            // geometry_msgs::Point marker_point;
-
             marker.pose.position.x = key[0];
             marker.pose.position.y = key[1];
             marker.pose.position.z = key[2];
             // marker.points.push_back(marker_point);
 
-            // Marker_publisher.publish(marker);
+            Marker_publisher.publish(marker);
 
             // // Append marker to marker (it's a `Marker` object)
-            markerArray.markers.push_back(marker);
+            // markerArray.markers.push_back(marker);
 
             // // Publish the marker 
-            MarkerArray_publisher.publish(markerArray);
+            // MarkerArray_publisher.publish(markerArray);
         } 
 
         uv_time_exposure = ros::Time::now().toSec() - prev_time;
@@ -303,6 +303,7 @@ std_msgs::ColorRGBA Accumulation::define_color(const double r, const double g, c
     color.a = a;
     return color;
 }
+
 
 int main (int argc, char **argv){
     // // Initialize the node
