@@ -30,6 +30,9 @@ interrupted = False
 
 
 def save_movement(p_x, p_y, p_z, q_x, q_y, q_z, q_w, time_in_seconds):
+    """
+    Function that stores the pose of the end effector.
+    """
     rospy.loginfo('writing to file')
     file_name = raw_input('\nname your movement file: ')
     dictionary = {
@@ -42,16 +45,21 @@ def save_movement(p_x, p_y, p_z, q_x, q_y, q_z, q_w, time_in_seconds):
         outfile.write(json_object)
 
 def playback():
+    """
+    Function that plays back the the saved poses of the end effector
+    """
     robot = moveit_commander.RobotCommander()
     group = moveit_commander.MoveGroupCommander("arm_with_torso")
     group.set_end_effector_link("gripper_link")
     command_pub = rospy.Publisher('/command', String, queue_size=10)
     group.set_planning_time(10.0)
-    #open the file to be read from and load into json object
+    
+    ## open the file to be read from and load into json object
     file_name = raw_input('\nEnter the name of the movement file you wish to replay: ')
     with open(file_name + '.json') as user_file:
         poses_object = json.load(user_file)
-    # get the arrays of poses to move to and times to hold
+    
+    ## get the arrays of poses to move to and times to hold
     p_x = poses_object["positions"][0]["x"]
     p_y = poses_object["positions"][1]["y"]
     p_z = poses_object["positions"][2]["z"]
@@ -61,12 +69,13 @@ def playback():
     q_w = poses_object["orientations"][3]["w"]
 
     sampling_rate = poses_object["sampling_rate"]
-    # Reconstruct poses from JSON file and store them in a list to be given to movegroup
+    
+    ## Reconstruct poses from JSON file and store them in a list to be given to movegroup
     waypoints = []
     for idx in range(len(p_x)):
         new_pose = Pose(Point(p_x[idx], p_y[idx], p_z[idx]),Quaternion(q_x[idx], q_y[idx], q_z[idx], q_w[idx]))
         waypoints.append(new_pose)
-    
+    ``
     fraction = 0
     count = 0
     while fraction < 0.9:
@@ -89,7 +98,7 @@ def playback():
         print("nope", fraction)# rospy.WARN("Could not plan the cartesian path")
     command_pub.publish("stop")
 
-    # Save movement trajectory so that it doesnt have to be recalculated later
+    ## Save movement trajectory so that it doesnt have to be recalculated later
     save_traj = input("Save this trajectory? Enter 1 for yes or 2 for no: ")
     if save_traj == 1:
         traj_name = raw_input('Name the trajectory: ')
@@ -98,6 +107,9 @@ def playback():
 
 
 def traj_playback():
+    """
+    Function that plays back a saved trajectory
+    """
     robot = moveit_commander.RobotCommander()
     group = moveit_commander.MoveGroupCommander("arm_with_torso")
     group.set_end_effector_link("gripper_link")
@@ -115,19 +127,8 @@ def traj_playback():
 if __name__ == '__main__':
     rospy.init_node("state_playback")
 
-    # dont think this is being used. delete if confirmed not needed
-    robot = moveit_commander.RobotCommander()
-
-    # init the planning scene
-    planning_scene = PlanningSceneInterface("base_link")
-    planning_scene.removeCollisionObject("my_front_ground")
-    planning_scene.removeCollisionObject("my_back_ground")
-    planning_scene.removeCollisionObject("my_right_ground")
-    planning_scene.removeCollisionObject("my_left_ground")
-    planning_scene.addCube("my_front_ground", 2, 1.1, 0.0, -1.0)
-    planning_scene.addCube("my_back_ground", 2, -1.2, 0.0, -1.0)
-    planning_scene.addCube("my_left_ground", 2, 0.0, 1.2, -1.0)
-    planning_scene.addCube("my_right_ground", 2, 0.0, -1.2, -1.0)
+    # ## dont think this is being used. delete if confirmed not needed
+    # robot = moveit_commander.RobotCommander()
     
     # outer loop controlling create movement or play movement
     while(True):
@@ -153,15 +154,16 @@ if __name__ == '__main__':
 
             print("\nRecording movement...\n")
             print("\nPress ctrl+c to stop recording and save to file\n")
-            # Get the intial pose
-            ee_pose = move_group.get_current_pose("gripper_link")
-            p_x.append(round(ee_pose.pose.position.x, 2))
-            p_y.append(round(ee_pose.pose.position.y, 2))
-            p_z.append(round(ee_pose.pose.position.z, 2))
-            q_x.append(round(ee_pose.pose.orientation.x, 2))
-            q_y.append(round(ee_pose.pose.orientation.y, 2))
-            q_z.append(round(ee_pose.pose.orientation.z, 2))
-            q_w.append(round(ee_pose.pose.orientation.w, 2))
+            
+            # # Get the intial pose
+            # ee_pose = move_group.get_current_pose("gripper_link")
+            # p_x.append(round(ee_pose.pose.position.x, 2))
+            # p_y.append(round(ee_pose.pose.position.y, 2))
+            # p_z.append(round(ee_pose.pose.position.z, 2))
+            # q_x.append(round(ee_pose.pose.orientation.x, 2))
+            # q_y.append(round(ee_pose.pose.orientation.y, 2))
+            # q_z.append(round(ee_pose.pose.orientation.z, 2))
+            # q_w.append(round(ee_pose.pose.orientation.w, 2))
 
             while(True) :
 
