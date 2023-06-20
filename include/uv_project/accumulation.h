@@ -95,13 +95,14 @@ class Accumulation {
         double ray_length;
         double numerator;
         double denominator;
-        double rad;
+        double conical_angle;
         double radius;
         double ir;
         double dist_ratio;
         double dose;
         double max_dose_value;
         double r; double g; double b; double a;
+        double lower_x_bound; double upper_x_bound; double lower_y_bound; double upper_y_bound;
         double output_value;
         vector<double> output_key;
         vector<double> value;
@@ -110,8 +111,8 @@ class Accumulation {
         map<vector<double>, int> cube_id_dict;
 
         // // Create polygon region
-        //Check::Point polygon[4] =  {{0.72, 0.55}, {0.74, 0.55}, {0.74, -0.55}, {0.72, -0.55}};  // Sensor Array
-        Check::Point polygon[4] =  {{0.70, 0.07}, {0.90, 0.07}, {0.90, -0.113}, {0.70, -0.113}};  // Cone
+        Check::Point polygon[4] =  {{0.72, 0.55}, {0.74, 0.55}, {0.74, -0.55}, {0.72, -0.55}};  // Sensor Array
+        //Check::Point polygon[4] =  {{0.70, 0.07}, {0.90, 0.07}, {0.90, -0.113}, {0.70, -0.113}};  // Cone
         //Check::Point polygon[4] =  {{0.75, 0.05}, {0.90, 0.05}, {0.90, -0.09}, {0.75, -0.09}};  // Mug
         //Check::Point polygon[4] =  {{0.6, 0.6}, {1.2, 0.6}, {1.2, -0.6}, {0.6, -0.6}};  // All of the table
 
