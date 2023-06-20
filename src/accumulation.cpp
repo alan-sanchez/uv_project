@@ -61,7 +61,11 @@ Accumulation::Accumulation() : tree(0.01){
     // // Define the number of sides from polygon
     sides = sizeof(polygon);
 
-    
+    // // Sensor Array x and y bounds
+    lower_x_bound = 0.72;
+    upper_x_bound = 0.74;
+    lower_y_bound = -0.55;
+    upper_y_bound = 0.55;
 }
 
 
@@ -123,8 +127,6 @@ void Accumulation::callback_filtered_pcl2(const PointCloud2& pcl2_msg){
             acc_map_dict.clear();
             cube_id_dict.clear();
             marker.action = Marker::DELETEALL;
-            // markerArray.markers.push_back(marker);
-            // MarkerArray_publisher.publish(markerArray);
             Marker_publisher.publish(marker);
             marker.action = Marker::ADD;
             ros::Duration(0.2).sleep();
@@ -146,8 +148,9 @@ void Accumulation::callback_filtered_pcl2(const PointCloud2& pcl2_msg){
         // // Transform the `pcl2_msg` to reference the `uv_light_link`. Then convert to a PointCloud object
         uv_light_pcl2 = transform_PointCloud2(pcl2_msg, "uv_light_link");
         convertPointCloud2ToPointCloud(uv_light_pcl2, uv_light_pcl);
+        
         // // 
-        omp_set_num_threads(2);
+        omp_set_num_threads(3);
         #pragma omp parallel for
         // // Use a for loop to check if the coordinates in the baselink_pcl is in the region
         for (size_t i = 0; i < uv_light_pcl.points.size(); ++i) {
@@ -168,9 +171,9 @@ void Accumulation::callback_filtered_pcl2(const PointCloud2& pcl2_msg){
                           + negative_z_arr[2] * uv_light_pcl.points[i].z;
 
                 denominator = magnitude_z_arr * ray_length;
-                rad = acos(numerator / denominator);
+                conical_angle = acos(numerator / denominator);
 
-                if (rad < conical_bound) {
+                if (conical_angle < conical_bound) {
                     point_in_conical_bound = point3d(baselink_pcl.points[i].x, 
                                                     baselink_pcl.points[i].y, 
                                                     baselink_pcl.points[i].z);
@@ -190,8 +193,8 @@ void Accumulation::callback_filtered_pcl2(const PointCloud2& pcl2_msg){
 
                     // // If point is octree, return the key, "KeyChecked"
                     if (occ) {
-                        // // compute the UV dose for the conical `rad` value
-                        radius = 0.3 * tan(rad);
+                        // // compute the UV dose for the `conical_angle`
+                        radius = 0.3 * tan(conical_angle);
                         ir = irradiance.model(radius) * 10; // multiply by 10 to convert from mW/cm^2 to W/m^2
                         dist_ratio = pow(0.3, 2) / pow(ray_length, 2); // Inverse square law ratio
                         dose = dist_ratio * uv_time_exposure * ir;
@@ -248,15 +251,8 @@ void Accumulation::callback_filtered_pcl2(const PointCloud2& pcl2_msg){
             marker.pose.position.x = key[0];
             marker.pose.position.y = key[1];
             marker.pose.position.z = key[2];
-            // marker.points.push_back(marker_point);
 
             Marker_publisher.publish(marker);
-
-            // // Append marker to marker (it's a `Marker` object)
-            // markerArray.markers.push_back(marker);
-
-            // // Publish the marker 
-            // MarkerArray_publisher.publish(markerArray);
         } 
 
         uv_time_exposure = ros::Time::now().toSec() - prev_time;
