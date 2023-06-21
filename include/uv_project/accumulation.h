@@ -103,6 +103,7 @@ class Accumulation {
         double max_dose_value;
         double r; double g; double b; double a;
         double lower_x_bound; double upper_x_bound; double lower_y_bound; double upper_y_bound;
+        double x_coord; double y_coord;
         double output_value;
         vector<double> output_key;
         vector<double> value;
