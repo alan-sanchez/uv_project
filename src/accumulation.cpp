@@ -29,7 +29,7 @@ Accumulation::Accumulation() : tree(0.01){
     magnitude_z_arr = sqrt(pow(negative_z_arr[0], 2) + pow(negative_z_arr[1], 2) + pow(negative_z_arr[2], 2));
 
     // // Bound of conical angle (rads)
-    conical_bound = 0.17;
+    conical_bound = 0.16;
 
     // // The required UV Dose for a UV rate constant of 0.0867 m^2/J
     // // at 99.9% disinfection rate is, 151.68 (J/m^2)
@@ -58,14 +58,14 @@ Accumulation::Accumulation() : tree(0.01){
     // // Initialize origin for octree
     origin = point3d(0,0,0);
 
-    // // Define the number of sides from polygon
-    sides = sizeof(polygon);
+    // // // Define the number of sides from polygon
+    // sides = sizeof(polygon);
 
     // // Sensor Array region x and y bounds
     lower_x_bound =  0.72;
-    upper_x_bound =  0.74;
-    lower_y_bound = -0.55;
-    upper_y_bound =  0.55;
+    upper_x_bound =  0.73;
+    lower_y_bound = -0.52;
+    upper_y_bound =  0.52;
 
     // // // Cone region x and y bounds
     // lower_x_bound =  0.70;
@@ -194,8 +194,8 @@ void Accumulation::callback_filtered_pcl2(const PointCloud2& pcl2_msg){
 
                 if (conical_angle < conical_bound) {
                     point_in_conical_bound = point3d(baselink_pcl.points[i].x, 
-                                                    baselink_pcl.points[i].y, 
-                                                    baselink_pcl.points[i].z);
+                                                     baselink_pcl.points[i].y, 
+                                                     baselink_pcl.points[i].z);
                                                     
                     // // Pull coordinates of KeyChecked cell and store them in a vector<double> type
                     tree.coordToKeyChecked(point_in_conical_bound, KeyChecked);
@@ -203,29 +203,27 @@ void Accumulation::callback_filtered_pcl2(const PointCloud2& pcl2_msg){
 
                     // // 
                     node = tree.search(KeyChecked);
-                    if (node == NULL) {
-                        continue;
-                    }
+                    if (node != NULL) {
+                        // // 
+                        occ = tree.isNodeOccupied(node);
 
-                    // // 
-                    occ = tree.isNodeOccupied(node);
+                        // // If point is octree, return the key, "KeyChecked"
+                        if (occ) {
+                            // // compute the UV dose for the `conical_angle`
+                            radius = 0.3 * tan(conical_angle);
+                            ir = irradiance.model(radius) * 10; // multiply by 10 to convert from mW/cm^2 to W/m^2
+                            dist_ratio = pow(0.3, 2) / pow(ray_length, 2); // Inverse square law ratio
+                            dose = dist_ratio * uv_time_exposure * ir;
 
-                    // // If point is octree, return the key, "KeyChecked"
-                    if (occ) {
-                        // // compute the UV dose for the `conical_angle`
-                        radius = 0.3 * tan(conical_angle);
-                        ir = irradiance.model(radius) * 10; // multiply by 10 to convert from mW/cm^2 to W/m^2
-                        dist_ratio = pow(0.3, 2) / pow(ray_length, 2); // Inverse square law ratio
-                        dose = dist_ratio * uv_time_exposure * ir;
+                            // //
+                            coord = {octomap_type_coord.x(), octomap_type_coord.y(), octomap_type_coord.z()};
 
-                        // //
-                        coord = {octomap_type_coord.x(), octomap_type_coord.y(), octomap_type_coord.z()};
-
-                        // // store coordinates to temporary dictionary
-                        if (temp_dict.find(coord)!=temp_dict.end()) {
-                            temp_dict[coord].push_back(dose);
-                        } else {
-                            temp_dict[coord] = vector<double>{dose};
+                            // // store coordinates to temporary dictionary
+                            if (temp_dict.find(coord)!=temp_dict.end()) {
+                                temp_dict[coord].push_back(dose);
+                            } else {
+                                temp_dict[coord] = vector<double>{dose};
+                            }
                         }
                     }
                 }

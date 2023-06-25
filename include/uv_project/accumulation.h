@@ -40,7 +40,7 @@
 #include <pcl_ros/point_cloud.h>
 
 #include "uv_project/uv_model.h"
-#include "uv_project/in_polygon_check.h"
+// #include "uv_project/in_polygon_check.h"
 
 using namespace std;
 
@@ -82,9 +82,9 @@ class Accumulation {
         octomap::OcTreeNode* node;
 
         uv_model irradiance;
-        Check in_poly;
+        //Check in_poly;
 
-        int sides;
+        // int sides;
         bool occ;
         double negative_z_arr[3];
         double magnitude_z_arr;
@@ -111,14 +111,13 @@ class Accumulation {
         map<vector<double>, double> acc_map_dict;
         map<vector<double>, int> cube_id_dict;
 
-        // // Create polygon region
-        Check::Point polygon[4] =  {{0.72, 0.55}, {0.74, 0.55}, {0.74, -0.55}, {0.72, -0.55}};  // Sensor Array
+        // // // Create polygon region
+        //Check::Point polygon[4] =  {{0.72, 0.55}, {0.74, 0.55}, {0.74, -0.55}, {0.72, -0.55}};  // Sensor Array
         //Check::Point polygon[4] =  {{0.70, 0.07}, {0.90, 0.07}, {0.90, -0.113}, {0.70, -0.113}};  // Cone
         //Check::Point polygon[4] =  {{0.75, 0.05}, {0.90, 0.05}, {0.90, -0.09}, {0.75, -0.09}};  // Mug
         //Check::Point polygon[4] =  {{0.6, 0.6}, {1.2, 0.6}, {1.2, -0.6}, {0.6, -0.6}};  // All of the table
 
-
-        Check::Point point_for_in_polygon_check;
+        //Check::Point point_for_in_polygon_check;
 
     public:
         Accumulation();
