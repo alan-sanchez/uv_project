@@ -3,6 +3,9 @@
 ## Import modules
 import sys
 import rospy
+import yaml 
+import json
+import signal
 import moveit_commander
 import moveit_msgs.msg
 
@@ -61,17 +64,17 @@ class ExecutePath(object):
         
         """
         ## Cartesian waypoints
-        waypoints = [Pose(Point(0.735,  0.60, 1.12),Quaternion(0.000, 0.0, 0, 1)),#0.131, 0, 0, 0.991)),
-                     Pose(Point(0.735,  0.50, 1.12),Quaternion(0.000, 0.0, 0, 1)),
-                     Pose(Point(0.735,  0.40, 1.12),Quaternion(0.000, 0.0, 0, 1)),
-                     Pose(Point(0.735,  0.25, 1.12),Quaternion(0.000, 0.0, 0, 1)),
-                     Pose(Point(0.735,  0.00, 1.12),Quaternion(0.000, 0.0, 0, 1)),
-                     Pose(Point(0.735, -0.25, 1.12),Quaternion(0.000, 0.0, 0, 1)),
-                     Pose(Point(0.735, -0.50, 1.12),Quaternion(0.000, 0.0, 0, 1)),
-                     Pose(Point(0.735, -0.60, 1.12),Quaternion(0.000, 0.0, 0, 1)),#-0.131, 0, 0, 0.991)),
+        waypoints = [Pose(Point(0.725,  0.60, 1.13),Quaternion(0.000, 0.0, 0, 1)),#0.131, 0, 0, 0.991)),
+                     Pose(Point(0.725,  0.50, 1.13),Quaternion(0.000, 0.0, 0, 1)),
+                     Pose(Point(0.725,  0.40, 1.13),Quaternion(0.000, 0.0, 0, 1)),
+                     Pose(Point(0.725,  0.25, 1.13),Quaternion(0.000, 0.0, 0, 1)),
+                     Pose(Point(0.725,  0.00, 1.13),Quaternion(0.000, 0.0, 0, 1)),
+                     Pose(Point(0.725, -0.25, 1.13),Quaternion(0.000, 0.0, 0, 1)),
+                     Pose(Point(0.725, -0.50, 1.13),Quaternion(0.000, 0.0, 0, 1)),
+                     Pose(Point(0.725, -0.60, 1.13),Quaternion(0.000, 0.0, 0, 1)),#-0.131, 0, 0, 0.991)),
                      ]
 
-        # waypoints = [Pose(Point(0.735,  -0.50, 1.17),Quaternion(0,0,0,1))]
+        # waypoints = [Pose(Point(0.735,  0.0, 1.17),Quaternion(0,0,0,1))]
 
         fraction = 0
         count = 0
@@ -87,6 +90,15 @@ class ExecutePath(object):
                                             plan,
                                             velocity_scaling_factor = self.velocity,
                                             )
+        
+        print("\n\nEnter 1 to record trajectory \nEnter 2 if not\n")
+        save_traj = input("Choose an option: ")
+
+        if save_traj == 1:
+            traj_name = raw_input('Name the trajectory: ')
+            with open(traj_name + '.yaml', 'w') as outfile:
+                yaml.dump(plan, outfile, default_flow_style=True)
+
         return plan
 
      
