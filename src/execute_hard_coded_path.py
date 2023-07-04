@@ -51,30 +51,49 @@ class ExecutePath(object):
         ## Initialize waypoints variable
         self.waypoints = None
 
-        ## This creates objects in the planning scene that mimic the table
-        ## If these were not in place gripper could hit the table
-        self.planning_scene = PlanningSceneInterface("base_link")
-        self.planning_scene.addBox("keepout", 0.25, 0.5, 0.09, 0.15, 0.0, 0.375)
-
         ##
-        self.velocity = 0.18 #0.278 #0.19 #0.571
+        self.velocity = 0.16 #0.278 #0.19 #0.571
  
     def plan_cartesian_path(self):
         """
         
         """
-        ## Cartesian waypoints
-        waypoints = [Pose(Point(0.725,  0.60, 1.13),Quaternion(0.000, 0.0, 0, 1)),#0.131, 0, 0, 0.991)),
-                     Pose(Point(0.725,  0.50, 1.13),Quaternion(0.000, 0.0, 0, 1)),
-                     Pose(Point(0.725,  0.40, 1.13),Quaternion(0.000, 0.0, 0, 1)),
-                     Pose(Point(0.725,  0.25, 1.13),Quaternion(0.000, 0.0, 0, 1)),
-                     Pose(Point(0.725,  0.00, 1.13),Quaternion(0.000, 0.0, 0, 1)),
-                     Pose(Point(0.725, -0.25, 1.13),Quaternion(0.000, 0.0, 0, 1)),
-                     Pose(Point(0.725, -0.50, 1.13),Quaternion(0.000, 0.0, 0, 1)),
-                     Pose(Point(0.725, -0.60, 1.13),Quaternion(0.000, 0.0, 0, 1)),#-0.131, 0, 0, 0.991)),
-                     ]
+        ################### Cartesian waypoints for table #####################
+        # waypoints = [Pose(Point(0.725,  0.60, 1.12),Quaternion(0.000, 0.0, 0, 1)),#0.131, 0, 0, 0.991)),
+        #              Pose(Point(0.725,  0.50, 1.12),Quaternion(0.000, 0.0, 0, 1)),
+        #              Pose(Point(0.725,  0.40, 1.12),Quaternion(0.000, 0.0, 0, 1)),
+        #              Pose(Point(0.725,  0.25, 1.12),Quaternion(0.000, 0.0, 0, 1)),
+        #              Pose(Point(0.725,  0.00, 1.12),Quaternion(0.000, 0.0, 0, 1)),
+        #              Pose(Point(0.725, -0.25, 1.12),Quaternion(0.000, 0.0, 0, 1)),
+        #              Pose(Point(0.725, -0.50, 1.12),Quaternion(0.000, 0.0, 0, 1)),
+        #              Pose(Point(0.725, -0.60, 1.12),Quaternion(0.000, 0.0, 0, 1)),#-0.131, 0, 0, 0.991)),
+        #              ]
+        # waypoints = [Pose(Point(0.725,  0.5, 1.17),Quaternion(0,0,0,1))]
 
-        # waypoints = [Pose(Point(0.735,  0.0, 1.17),Quaternion(0,0,0,1))]
+        ################### Cartesian waypoints for cone #####################
+        # waypoints = [Pose(Point(0.85,  0.0, 1.4),Quaternion(0.00, 0.00, 0.00,  1.00)),
+        #              Pose(Point(0.81, -0.051, 1.4),Quaternion(0.00, -0.00, -0.00,  1.00)),
+        #              Pose(Point(0.78, -0.128, 1.3),Quaternion(0.00, -0.00, -0.00,  1.00)),
+        #              Pose(Point(0.72, -0.128, 1.3),Quaternion(0.00, -0.00, -0.00,  1.00)),
+        #              Pose(Point(0.72,  0.051, 1.3),Quaternion(0.00, -0.00, -0.00,  1.00)),
+        #             ]
+
+        # waypoints = [Pose(Point(0.85,  0.0, 1.4),Quaternion(0.00, 0.00, 0.00,  1.00)),]
+
+        ################### Cartesian waypoints for mug #####################
+        
+
+        ################### Cartesian waypoints for sensor array #####################
+        # waypoints = [Pose(Point(0.725,  0.60, 1.12),Quaternion(0.000, 0.0, 0, 1)),#0.131, 0, 0, 0.991)),
+        #              Pose(Point(0.725,  0.50, 1.12),Quaternion(0.000, 0.0, 0, 1)),
+        #              Pose(Point(0.725,  0.40, 1.12),Quaternion(0.000, 0.0, 0, 1)),
+        #              Pose(Point(0.725,  0.25, 1.12),Quaternion(0.000, 0.0, 0, 1)),
+        #              Pose(Point(0.725,  0.00, 1.12),Quaternion(0.000, 0.0, 0, 1)),
+        #              Pose(Point(0.725, -0.25, 1.12),Quaternion(0.000, 0.0, 0, 1)),
+        #              Pose(Point(0.725, -0.50, 1.12),Quaternion(0.000, 0.0, 0, 1)),
+        #              Pose(Point(0.725, -0.60, 1.12),Quaternion(0.000, 0.0, 0, 1)),#-0.131, 0, 0, 0.991)),
+        #              ]
+        # waypoints = [Pose(Point(0.725,  0.5, 1.17),Quaternion(0,0,0,1))]
 
         fraction = 0
         count = 0
@@ -115,6 +134,7 @@ class ExecutePath(object):
         ## Publish string command to stop UV accumulation mapping from other nodes
         self.command_pub.publish("stop") 
 
+
     def init_pose(self, vel = 0.2):
         """
         Function that sends a joint goal that moves the Fetch's arm and torso to
@@ -150,15 +170,15 @@ if __name__ == '__main__':
     ## Instantiate a `ExecutePath` object
     motion = ExecutePath()
 
-    print("")
-    print("====== Press 'Enter' to move arm to initial position =======")
-    raw_input()
-    motion.init_pose()
-
     rate = rospy.Rate(10)
     while not rospy.is_shutdown():
         ## Pause for 2 seconds after the motion is completed
         rospy.sleep(2)
+
+        print("")
+        print("====== Press 'Enter' to return to initial position =======")
+        raw_input()
+        motion.init_pose()
         
         ## Wait for user input before generating new disinfection region
         ## Print out instructions for user input to get things started
@@ -167,11 +187,6 @@ if __name__ == '__main__':
         raw_input()
         plan = motion.plan_cartesian_path()
         motion.execute_plan(plan)
-        
-        print("")
-        print("====== Press 'Enter' to return to initial position =======")
-        raw_input()
-        motion.init_pose()
         
         rate.sleep()
 
