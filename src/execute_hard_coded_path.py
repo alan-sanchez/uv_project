@@ -71,29 +71,29 @@ class ExecutePath(object):
         # waypoints = [Pose(Point(0.725,  0.5, 1.17),Quaternion(0,0,0,1))]
 
         ################### Cartesian waypoints for cone #####################
-        # waypoints = [Pose(Point(0.85,  0.0, 1.4),Quaternion(0.00, 0.00, 0.00,  1.00)),
-        #              Pose(Point(0.81, -0.051, 1.4),Quaternion(0.00, -0.00, -0.00,  1.00)),
-        #              Pose(Point(0.78, -0.128, 1.3),Quaternion(0.00, -0.00, -0.00,  1.00)),
-        #              Pose(Point(0.72, -0.128, 1.3),Quaternion(0.00, -0.00, -0.00,  1.00)),
-        #              Pose(Point(0.72,  0.051, 1.3),Quaternion(0.00, -0.00, -0.00,  1.00)),
-        #             ]
+        # waypoints = [Pose(Point(0.95,  0.20, 1.3),Quaternion(0.00, 0.00, 0.00,  1.00)),
+        #              Pose(Point(0.95,  0.0,  1.42),Quaternion(0.00, 0.00, 0.00,  1.00)),
+        #              Pose(Point(0.95, -0.20, 1.3),Quaternion(0.00, 0.00, 0.00,  1.00)),
+        #              Pose(Point(0.85, -0.20, 1.3),Quaternion(0.00, 0.00, 0.00,  1.00)),
+        #              Pose(Point(0.85,  0.0,  1.42),Quaternion(0.00, 0.00, 0.00,  1.00)),        
+        #              Pose(Point(0.85,  0.20, 1.3),Quaternion(0.00, 0.00, 0.00,  1.00)),
+        #              Pose(Point(0.75,  0.20, 1.3),Quaternion(0.00, 0.00, 0.00,  1.00)),
+        #              Pose(Point(0.75,  0.0,  1.42),Quaternion(0.00, 0.00, 0.00,  1.00)),        
+        #              Pose(Point(0.75, -0.20, 1.3),Quaternion(0.00, 0.00, 0.00,  1.00)),
+        #            ]
 
-        # waypoints = [Pose(Point(0.85,  0.0, 1.4),Quaternion(0.00, 0.00, 0.00,  1.00)),]
+        # waypoints = [Pose(Point(0.85,  0.0, 1.42),Quaternion(0.00, 0.00, 0.00,  1.00)),]
 
         ################### Cartesian waypoints for mug #####################
-        
+        waypoints = [Pose(Point(0.85,  0.10, 1.2),Quaternion(0.00, 0.00, 0.00,  1.00)),
+                     Pose(Point(0.85,  0.00, 1.2),Quaternion(0.00, 0.00, 0.00,  1.00)),
+                     Pose(Point(0.85, -0.10, 1.2),Quaternion(0.00, 0.00, 0.00,  1.00)),
+                     Pose(Point(0.80, -0.10, 1.2),Quaternion(0.00, 0.00, 0.00,  1.00)),
+                     Pose(Point(0.80,  0.00, 1.2),Quaternion(0.00, 0.00, 0.00,  1.00)),
+                     Pose(Point(0.80,  0.10, 1.2),Quaternion(0.00, 0.00, 0.00,  1.00)),        
+                   ]
 
-        ################### Cartesian waypoints for sensor array #####################
-        # waypoints = [Pose(Point(0.725,  0.60, 1.12),Quaternion(0.000, 0.0, 0, 1)),#0.131, 0, 0, 0.991)),
-        #              Pose(Point(0.725,  0.50, 1.12),Quaternion(0.000, 0.0, 0, 1)),
-        #              Pose(Point(0.725,  0.40, 1.12),Quaternion(0.000, 0.0, 0, 1)),
-        #              Pose(Point(0.725,  0.25, 1.12),Quaternion(0.000, 0.0, 0, 1)),
-        #              Pose(Point(0.725,  0.00, 1.12),Quaternion(0.000, 0.0, 0, 1)),
-        #              Pose(Point(0.725, -0.25, 1.12),Quaternion(0.000, 0.0, 0, 1)),
-        #              Pose(Point(0.725, -0.50, 1.12),Quaternion(0.000, 0.0, 0, 1)),
-        #              Pose(Point(0.725, -0.60, 1.12),Quaternion(0.000, 0.0, 0, 1)),#-0.131, 0, 0, 0.991)),
-        #              ]
-        # waypoints = [Pose(Point(0.725,  0.5, 1.17),Quaternion(0,0,0,1))]
+        # waypoints = [Pose(Point(0.85,  0.0, 1.2),Quaternion(0.00, 0.00, 0.00,  1.00)),]
 
         fraction = 0
         count = 0
@@ -183,7 +183,7 @@ if __name__ == '__main__':
         ## Wait for user input before generating new disinfection region
         ## Print out instructions for user input to get things started
         print("")
-        print("====== Press 'Enter' to execute basic motion =======")
+        print("====== Press 'Enter' to execute hard-coded path =======")
         raw_input()
         plan = motion.plan_cartesian_path()
         motion.execute_plan(plan)
