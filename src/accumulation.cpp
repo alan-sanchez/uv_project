@@ -61,17 +61,17 @@ Accumulation::Accumulation() : tree(0.01){
     // // // Define the number of sides from polygon
     // sides = sizeof(polygon);
 
-    // // Sensor Array region x and y bounds
-    lower_x_bound =  0.72;
-    upper_x_bound =  0.73;
-    lower_y_bound = -0.52;
-    upper_y_bound =  0.52;
+    // // // Sensor Array region x and y bounds
+    // lower_x_bound =  0.72;
+    // upper_x_bound =  0.73;
+    // lower_y_bound = -0.52;
+    // upper_y_bound =  0.52;
 
-    // // // Cone region x and y bounds
-    // lower_x_bound =  0.70;
-    // upper_x_bound =  0.90;
-    // lower_y_bound = -0.113;
-    // upper_y_bound =  0.07;
+    // // Cone region x and y bounds
+    lower_x_bound =  0.70;
+    upper_x_bound =  0.90;
+    lower_y_bound = -0.113;
+    upper_y_bound =  0.07;
 
     // // // Mug region x and y bounds
     // lower_x_bound =  0.75;
@@ -170,9 +170,6 @@ void Accumulation::callback_filtered_pcl2(const PointCloud2& pcl2_msg){
             // //
             x_coord = baselink_pcl.points[i].x;
             y_coord = baselink_pcl.points[i].y;
-            // if (x_coord >= lower_x_bound && x_coord <= upper_x_bound && y_coord >= lower_y_bound && y_coord <= upper_y_bound){
-            //     cout << "Made it here" << endl;
-            // }
 
             // // // Check to see if point is in the predefined disinfeciton region
             // point_for_in_polygon_check = {baselink_pcl.points[i].x, baselink_pcl.points[i].y};
@@ -230,7 +227,6 @@ void Accumulation::callback_filtered_pcl2(const PointCloud2& pcl2_msg){
             }
         } 
         
-        // // #pragma omp parallel for
         // // Create marker array of cells
         for (auto const& data : temp_dict) {
             // // Pull key and value and determine the largest value
@@ -321,7 +317,6 @@ std_msgs::ColorRGBA Accumulation::define_color(const double r, const double g, c
 int main (int argc, char **argv){
     // // Initialize the node
     ros::init(argc, argv, "accumulation");
-    // ros::NodeHandle nh;
 
     // // Instantiate Accumulation object
     Accumulation obj;
