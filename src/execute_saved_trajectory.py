@@ -4,7 +4,6 @@
 import sys
 import rospy
 import yaml 
-import json
 import signal
 import moveit_commander
 import moveit_msgs.msg
@@ -13,7 +12,6 @@ import moveit_msgs.msg
 from moveit_python import PlanningSceneInterface, MoveGroupInterface
 from moveit_msgs.msg import MoveItErrorCodes, PlanningScene
 from std_msgs.msg import String
-from geometry_msgs.msg import  Pose, Point, Quaternion
 
 class ExecutePath(object):
     """
@@ -41,32 +39,12 @@ class ExecutePath(object):
         ## Instantiate a `MoveGroupCommander`_ object.  This object is an interface
         ## to one group of joints.
         self.group = moveit_commander.MoveGroupCommander("arm_with_torso")
-        self.group.set_end_effector_link("gripper_link") #use gripper_link if it is planar disinfection
-
+        self.group.set_end_effector_link("gripper_link")
         ## We create a `DisplayTrajectory`_ publisher which is used later to publish
         ## trajectories for RViz to visualize:
         self.display_trajectory_publisher = rospy.Publisher('/move_group/display_planned_path',
                                                        moveit_msgs.msg.DisplayTrajectory,
                                                        queue_size=20)
-        ## Initialize waypoints variable
-        self.waypoints = None
-
-        ## This creates objects in the planning scene that mimic the table
-        ## If these were not in place gripper could hit the table
-        self.planning_scene = PlanningSceneInterface("base_link")
-        self.planning_scene.addBox("keepout", 0.25, 0.5, 0.09, 0.15, 0.0, 0.375)     
-
-    def execute_plan(self, plan):
-        """
-        
-        """
-        ## Publish string command to initiate functions in other nodes
-        self.command_pub.publish("start")
-
-        self.group.execute(plan, wait=True)
-
-        ## Publish string command to stop UV accumulation mapping from other nodes
-        self.command_pub.publish("stop") 
 
     def init_pose(self, vel = 0.2):
         """
@@ -96,17 +74,24 @@ class ExecutePath(object):
                 scene.removeCollisionObject("keepout")
                 return 0 
 
-    def traj_playback():
+    def traj_playback(self, choice):
         """
         Function that plays back a saved trajectory
         """
-        file_name = raw_input('\nEnter the name of the trajcetory file you wish to replay: ')
-        with open(file_name + '.yaml', 'r') as user_file:
+        if choice == 1:
+            file_name = 'table.yaml'
+        elif choice == 2:
+            file_name = 'cone.yaml'
+        elif choice == 3:
+            file_name = 'mug.yaml'
+        elif choice == 4:
+            file_name = 'sensor_array.yaml'
+        with open(file_name, 'r') as user_file:
             traj = yaml.load(user_file)
 
-        command_pub.publish("start")
-        self.execute_path(traj, wait=True)
-        command_pub.publish("stop")
+        self.command_pub.publish("start")
+        self.group.execute(traj)
+        self.command_pub.publish("stop")
 
 
 if __name__ == '__main__':
@@ -115,27 +100,26 @@ if __name__ == '__main__':
     ## Instantiate a `ExecutePath` object
     motion = ExecutePath()
 
-    print("")
-    print("====== Press 'Enter' to move arm to initial position =======")
-    raw_input()
-    motion.init_pose()
+    print("\n\nMake sure all the trajectory .yaml files are in the directory this was launched from\n\n")
+
 
     rate = rospy.Rate(10)
     while not rospy.is_shutdown():
         ## Pause for 2 seconds after the motion is completed
         rospy.sleep(2)
-        
-        ## Wait for user input before generating new disinfection region
-        ## Print out instructions for user input to get things started
-        print("")
-        print("====== Press 'Enter' to execute basic motion =======")
-        raw_input()
-        motion.traj_playback()
-        
+
         print("")
         print("====== Press 'Enter' to return to initial position =======")
         raw_input()
         motion.init_pose()
+
+        ## 
+        print("\nType the number of the trajectory to play back.\n1: Table\n2: Cone\n3: Mug\n4: Sensor Array\n\n")
+        choice = input("Selection: ")
+        if choice == 1 or choice == 2 or choice == 3 or choice == 4:
+            motion.traj_playback(choice)
+        else:
+            print("Enter 1, 2, 3, or 4")
         
         rate.sleep()
 
