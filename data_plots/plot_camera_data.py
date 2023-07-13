@@ -20,9 +20,9 @@ class Plotter():
         data = {}
         # Read and process each CSV file
         for file in self.camera_files:
-            df_camera = pd.read_csv(file)
-            x_values = df_camera['y']
-            y_values = df_camera['u']
+            df_camera = pd.read_csv(file, sep='\t')
+            x_values = df_camera.iloc[:,0]
+            y_values = df_camera.iloc[:,1]
             plt.plot(x_values, y_values, label=file)
 
         df_sensor = pd.read_csv("sensor_data.csv", sep='\t')
@@ -42,9 +42,9 @@ class Plotter():
         data = {}
         # Read and process each CSV file
         for file in self.camera_files:
-            df_camera = pd.read_csv(file)
-            x_values = df_camera['y']
-            y_values = df_camera['u']
+            df_camera = pd.read_csv(file, sep='\t')
+            x_values = df_camera.iloc[:,0]
+            y_values = df_camera.iloc[:,1]
             plt.plot(x_values, y_values, label=file)
         
         # # Plot the results
@@ -72,19 +72,12 @@ class Plotter():
 
     def plot_camera_with_sensor_average(self):
         data = {}
-        # Read and process each CSV file
-        # for file in self.camera_files:
-        #     df_camera = pd.read_csv(file)
-        #     x_values = df_camera['y']
-        #     y_values = df_camera['u']
-        #     plt.plot(x_values, y_values, label=file)
-
-        df = pd.read_csv("camera_data_1.csv", sep='\t')#, header=None)
-        x_values = df.iloc[:,0]
-        y_values = df.iloc[:,1]
-        # print(df.iloc[:,0], df.iloc[:,1])
-        # print(df)
-        plt.plot(x_values,y_values, label="camera_data_1")
+        ## Read and process each CSV file
+        for file in self.camera_files:
+            df_camera = pd.read_csv(file, sep='\t')
+            x_values = df_camera.iloc[:,0]
+            y_values = df_camera.iloc[:,1]
+            plt.plot(x_values, y_values, label=file)
 
         ## Plot the results
         plt.plot(self.y_axis, self.average_sensor_measurements, 'ro-', label="Sensor Array Data")
@@ -101,9 +94,9 @@ class Plotter():
         ## Read and process each CSV file
         for file in self.camera_files:
             ##    
-            df = pd.read_csv(file)
-            x_values = df['y']
-            y_values = df['u']
+            df_camera = pd.read_csv(file, sep='\t')
+            x_values = df_camera.iloc[:,0]
+            y_values = df_camera.iloc[:,1]
 
             ##
             for x, y in zip(x_values, y_values):
@@ -129,8 +122,8 @@ class Plotter():
 
 if __name__ == '__main__':
     model = Plotter()
-    # model.plot_averages()
-    # model.plot_all_data()
-    # model.plot_camera_data()
-    # model.plot_sensor_data()
+    model.plot_averages()
+    model.plot_all_data()
+    model.plot_camera_data()
+    model.plot_sensor_data()
     model.plot_camera_with_sensor_average()
