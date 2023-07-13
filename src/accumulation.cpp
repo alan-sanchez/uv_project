@@ -58,26 +58,29 @@ Accumulation::Accumulation() : tree(0.01){
     // // Initialize origin for octree
     origin = point3d(0,0,0);
 
+    // // 
+    dist_adjustment = 1.0;
+
     // // // Define the number of sides from polygon
     // sides = sizeof(polygon);
 
-    // // // Sensor Array region x and y bounds
-    // lower_x_bound =  0.72;
-    // upper_x_bound =  0.73;
-    // lower_y_bound = -0.52;
-    // upper_y_bound =  0.52;
+    // // Sensor Array region x and y bounds
+    lower_x_bound =  0.72;
+    upper_x_bound =  0.73;
+    lower_y_bound = -0.52;
+    upper_y_bound =  0.52;
 
-    // // Cone region x and y bounds
-    lower_x_bound =  0.70;
-    upper_x_bound =  0.90;
-    lower_y_bound = -0.113;
-    upper_y_bound =  0.07;
-
-    // // // Mug region x and y bounds
+    // // // Cone region x and y bounds
     // lower_x_bound =  0.75;
     // upper_x_bound =  0.90;
+    // lower_y_bound = -0.1;
+    // upper_y_bound =  0.1;
+
+    // // // Mug region x and y bounds
+    // lower_x_bound =  0.80;
+    // upper_x_bound =  0.90;
     // lower_y_bound = -0.09;
-    // upper_y_bound =  0.05;
+    // upper_y_bound =  0.09;
 }
 
 
@@ -209,7 +212,7 @@ void Accumulation::callback_filtered_pcl2(const PointCloud2& pcl2_msg){
                             // // compute the UV dose for the `conical_angle`
                             radius = 0.3 * tan(conical_angle);
                             ir = irradiance.model(radius) * 10; // multiply by 10 to convert from mW/cm^2 to W/m^2
-                            dist_ratio = pow(0.3, 2) / pow(ray_length, 2); // Inverse square law ratio
+                            dist_ratio = pow(0.3, 2) / pow(ray_length*1.25, 2); // Inverse square law ratio
                             dose = dist_ratio * uv_time_exposure * ir;
 
                             // //
@@ -250,11 +253,11 @@ void Accumulation::callback_filtered_pcl2(const PointCloud2& pcl2_msg){
             }
 
             // // Update the color id based on UV values
-            if (acc_map_dict[key] < 0.25 * required_dose) {
+            if (acc_map_dict[key] < (0.5 * required_dose)) {
                 cube_color = define_color(1,0,0,0.5);
-            } else if (acc_map_dict[key] < 0.5 * required_dose) {
+            } else if ((0.5 * required_dose) < acc_map_dict[key] && acc_map_dict[key] < (0.75 * required_dose)) {
                 cube_color = define_color(1, 0.5, 0, 0.65);
-            } else if (acc_map_dict[key] < 0.75 * required_dose) {
+            } else if ((0.75 * required_dose) < acc_map_dict[key] && acc_map_dict[key] < required_dose) {
                 cube_color = define_color(1, 1, 0, 0.85);
             } else {
                 cube_color = define_color(0, 1, 0, 1);

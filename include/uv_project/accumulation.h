@@ -95,6 +95,7 @@ class Accumulation {
         double ray_length;
         double numerator;
         double denominator;
+        double dist_adjustment;
         double conical_angle;
         double radius;
         double ir;
