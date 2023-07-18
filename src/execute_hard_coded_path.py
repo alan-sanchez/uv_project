@@ -71,46 +71,47 @@ class ExecutePath(object):
         # waypoints = [Pose(Point(0.725,  0.5, 1.17),Quaternion(0,0,0,1))]
 
         ################### Cartesian waypoints for cone #####################
-        # waypoints = [Pose(Point(0.95,  0.20, 1.3),Quaternion(0.00, 0.00, 0.00,  1.00)),
-        #              Pose(Point(0.95,  0.0,  1.42),Quaternion(0.00, 0.00, 0.00,  1.00)),
-        #              Pose(Point(0.95, -0.20, 1.3),Quaternion(0.00, 0.00, 0.00,  1.00)),
-        #              Pose(Point(0.85, -0.20, 1.3),Quaternion(0.00, 0.00, 0.00,  1.00)),
-        #              Pose(Point(0.85,  0.0,  1.42),Quaternion(0.00, 0.00, 0.00,  1.00)),        
-        #              Pose(Point(0.85,  0.20, 1.3),Quaternion(0.00, 0.00, 0.00,  1.00)),
-        #              Pose(Point(0.75,  0.20, 1.3),Quaternion(0.00, 0.00, 0.00,  1.00)),
-        #              Pose(Point(0.75,  0.0,  1.42),Quaternion(0.00, 0.00, 0.00,  1.00)),        
-        #              Pose(Point(0.75, -0.20, 1.3),Quaternion(0.00, 0.00, 0.00,  1.00)),
+        # waypoints = [Pose(Point(0.7,  0.3,  1.266), Quaternion(-0.36, -0.29, -0.21, 0.86)),
+        #              Pose(Point(0.7, -0.3,  1.266), Quaternion( 0.36, -0.29,  0.21, 0.86)),
+        #              Pose(Point(0.7, -0.3,  1.157), Quaternion( 0.36, -0.29,  0.21, 0.86)),
+        #              Pose(Point(0.54,-0.0,  1.157), Quaternion( 0.06,  0.43, -0.25, -0.86)),
+        #              Pose(Point(0.7,  0.3,  1.157), Quaternion(-0.36, -0.29, -0.21, 0.86)),
+        #              Pose(Point(0.7,  0.3,  1.058), Quaternion(-0.36, -0.29, -0.21, 0.86)),
+        #              Pose(Point(0.54,-0.0,  1.060), Quaternion( 0.06,  0.43, -0.25, -0.86)),
+        #              Pose(Point(0.7, -0.3,  1.058), Quaternion( 0.36, -0.29,  0.21, 0.86)),
+        #              Pose(Point(0.65,-0.17, 1.111), Quaternion( 0.14, -0.19,  0.21, 0.95)),
+        #              Pose(Point(0.64, 0.22, 1.111), Quaternion(-0.14, -0.19, -0.21, 0.95)),
         #            ]
 
         # waypoints = [Pose(Point(0.85,  0.0, 1.42),Quaternion(0.00, 0.00, 0.00,  1.00)),]
 
         ################### Cartesian waypoints for mug #####################
-        waypoints = [Pose(Point(0.85,  0.10, 1.2),Quaternion(0.00, 0.00, 0.00,  1.00)),
-                     Pose(Point(0.85,  0.00, 1.2),Quaternion(0.00, 0.00, 0.00,  1.00)),
-                     Pose(Point(0.85, -0.10, 1.2),Quaternion(0.00, 0.00, 0.00,  1.00)),
-                     Pose(Point(0.80, -0.10, 1.2),Quaternion(0.00, 0.00, 0.00,  1.00)),
-                     Pose(Point(0.80,  0.00, 1.2),Quaternion(0.00, 0.00, 0.00,  1.00)),
-                     Pose(Point(0.80,  0.10, 1.2),Quaternion(0.00, 0.00, 0.00,  1.00)),        
+        waypoints = [Pose(Point(0.846, 0.413, 0.977),Quaternion(-0.54, -0.01, -0.03, 0.84)),
+                     Pose(Point(0.841, 0.286, 1.171),Quaternion(-0.33, -0.01, -0.03, 0.94)),
+                     Pose(Point(0.836, 0.072, 1.211),Quaternion(-0.02, -0.0, -0.03, 1.0)),
+                     Pose(Point(0.836,-0.101, 1.21),Quaternion(-0.02, -0.0, -0.03, 1.0)),
+                     Pose(Point(0.658, -0.261, 1.063),Quaternion(-0.39, 0.17, 0.19, -0.88)),
+                     Pose(Point(0.594, 0.069, 1.057),Quaternion(0.06, 0.36, 0.14, -0.92)),
+                     Pose(Point(0.648, 0.288, 1.08),Quaternion(-0.33, -0.27, -0.11, 0.9)),
+
+                    #  Pose(Point(0.85, -0.10, 1.2),Quaternion(0.00, 0.00, 0.00,  1.00)),
+                    #  Pose(Point(0.80, -0.10, 1.2),Quaternion(0.00, 0.00, 0.00,  1.00)),
+                    #  Pose(Point(0.80,  0.00, 1.2),Quaternion(0.00, 0.00, 0.00,  1.00)),
+                    #  Pose(Point(0.80,  0.10, 1.2),Quaternion(0.00, 0.00, 0.00,  1.00)),        
                    ]
 
         # waypoints = [Pose(Point(0.85,  0.0, 1.2),Quaternion(0.00, 0.00, 0.00,  1.00)),]
 
-        fraction = 0
-        count = 0
-        while fraction < 0.9:
-            (plan, fraction) = self.group.compute_cartesian_path(waypoints, # waypoints to follow
+        (plan, fraction) = self.group.compute_cartesian_path(waypoints, # waypoints to follow
                                                              0.1,           # eef_step
                                                              0.00)          # jump_threshold
-            count +=1
-            if count > 10:
-                break
-        
+    
         plan = self.group.retime_trajectory(self.robot.get_current_state(),
                                             plan,
                                             velocity_scaling_factor = self.velocity,
                                             )
         
-        print("\n\nEnter 1 to record trajectory \nEnter 2 if not\n")
+        print("\n\nEnter 1 to record trajectory \nEnter 2 if not \nEnter 3 to cancel \n")
         save_traj = input("Choose an option: ")
 
         if save_traj == 1:
@@ -118,9 +119,11 @@ class ExecutePath(object):
             with open(traj_name + '.yaml', 'w') as outfile:
                 yaml.dump(plan, outfile, default_flow_style=True)
 
-        return plan
+        elif save_traj == 3:
+            return None
 
-     
+        return plan
+   
 
     def execute_plan(self, plan):
         """
@@ -186,7 +189,9 @@ if __name__ == '__main__':
         print("====== Press 'Enter' to execute hard-coded path =======")
         raw_input()
         plan = motion.plan_cartesian_path()
-        motion.execute_plan(plan)
+        
+        if plan != None:
+            motion.execute_plan(plan)
         
         rate.sleep()
 
