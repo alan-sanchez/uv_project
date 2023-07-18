@@ -1,4 +1,4 @@
-#!/usr/bin/env python  
+#!/usr/bin/env python3  
 
 ## Import modules
 import rospy
@@ -11,11 +11,9 @@ class EELocator():
     """
     def __init__(self):
         """
-        Initialize the pulisher and other variables
+        Initialize transform listener
         :param self: The self reference. 
         """
-        
-        ## Initialize transform listener
         self.listener = tf.TransformListener()
 
        
@@ -40,7 +38,7 @@ if __name__ == '__main__':
     ## Initialize `arm_twist_cmds` node
     rospy.init_node('ee_locator')
 
-    ## Instantiate the `ArmTwistcmds` object
+    ## Instantiate the `EELocator` object
     obj = EELocator()
 
     ## Set rospy rate
@@ -49,7 +47,7 @@ if __name__ == '__main__':
         ##
                 # print()
 
-        raw_input("Press enter if you want the pose of the end effector.")
+        input("Press enter if you want the pose of the end effector.")
         ## Call on the `vel_calculator()` method
         val = obj.ee_pose()
         print(val)
