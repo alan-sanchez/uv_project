@@ -53,6 +53,8 @@ class Accumulation {
         ros::Subscriber command_sub;
         ros::Publisher MarkerArray_publisher;
         ros::Publisher Marker_publisher;
+        ros::Time start_time;
+        ros::Duration execution_time;
 
         std_msgs::Header header;
         std_msgs::String command;
