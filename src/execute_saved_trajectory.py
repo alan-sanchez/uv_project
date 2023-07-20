@@ -81,9 +81,9 @@ class ExecutePath(object):
         if choice == 1:
             file_name = 'table.yaml'
         elif choice == 2:
-            file_name = 'cone.yaml'
+            file_name = 'cone_b.yaml'
         elif choice == 3:
-            file_name = 'mug.yaml'
+            file_name = 'mug_b.yaml'
         elif choice == 4:
             file_name = 'sensor_array.yaml'
         with open(file_name, 'r') as user_file:
