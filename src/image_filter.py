@@ -36,8 +36,8 @@ class ImageFilter():
 
         ## set the lower and upper bounds for the desired hue
         # self.lower_col = np.array([0, 20, 170]) # Table, older camera
-        self.lower_col = np.array([0, 5, 150]) # Table
-        #self.lower_col = np.array([0, 5, 240]) # Cone
+        #self.lower_col = np.array([0, 5, 150]) # Table
+        self.lower_col = np.array([0, 0, 240]) # Cone
         # self.lower_col = np.array([0, 20, 100]) # Mug
         self.upper_col = np.array([180, 255, 255])
 
