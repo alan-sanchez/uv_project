@@ -85,7 +85,7 @@ class ExecutePath(object):
         elif choice == 3:
             file_name = 'mug_b.yaml'
         elif choice == 4:
-            file_name = 'sensor_array.yaml'
+            file_name = 'test8.yaml'
         with open(file_name, 'r') as user_file:
             traj = yaml.load(user_file)
 
@@ -122,4 +122,3 @@ if __name__ == '__main__':
             print("Enter 1, 2, 3, or 4")
         
         rate.sleep()
-
