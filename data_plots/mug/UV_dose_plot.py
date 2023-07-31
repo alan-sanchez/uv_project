@@ -23,6 +23,7 @@ def plot_hist(values, bins=10):
 
     num_inactive_cells = 0
 
+
     # Add labels to the centers of the bins
     for count, x in zip(n, bin_centers):
         plt.text(x, count, str(int(count)), ha='center', va='bottom')
@@ -32,7 +33,7 @@ def plot_hist(values, bins=10):
     labels = [f"{b}" if b != 2.25 else "2.5+" for b in bins]
     plt.xlabel('Percentage of the required UV dose')
     plt.ylabel('Frequency')
-    plt.title('Histogram of Hard Coded Path (# of Inactivated/Green Cells: '+str(int(num_inactive_cells))+')')
+    plt.title('Histogram of User Input Path (# of Inactivated/Green Cells: '+str(int(num_inactive_cells))+')')
     plt.xticks(bins, labels)
     plt.grid(axis='y')
     plt.legend()
@@ -40,17 +41,16 @@ def plot_hist(values, bins=10):
 
 
 ## Read the CSV file into a pandas DataFrame
-df = pd.read_csv('hard_coded.csv')
+df = pd.read_csv('mug7.csv')
 
 ## Extract the UV_dose coordinates
 values = df['UV_dose']/156.11
 
-## Set any value over 2.0 to 2.0 using NumPy's where function
+# Set any value over 2.0 to 2.0 using NumPy's where function
 values = np.where(values > 2.0, 2.125, values)
 
-## 
+
 custom_bins = [0, .25, .50, .75, 1, 1.25, 1.5, 1.75, 2.0, +2.25]
 
-##
 plot_hist(values, custom_bins)
 

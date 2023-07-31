@@ -4,6 +4,8 @@ import glob
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+from collections import OrderedDict
+
 
 class Plotter():
     def __init__(self):
@@ -12,7 +14,7 @@ class Plotter():
 
         ## 
         self.y_axis = np.linspace(0.5, -0.5, 14)
-        self.average_sensor_measurements = [363.84, 233.42, 186.98, 156.38, 162.70, 195.86, 372.14,	
+        self.average_sensor_measurements = [250.18, 233.42, 186.98, 156.38, 162.70, 195.86, 372.14,	
                                             190.35, 187.01, 172.47, 170.67, 198.43, 253.32, 315.29]
         
 
@@ -25,7 +27,7 @@ class Plotter():
             y_values = df_camera.iloc[:,1]
             plt.plot(x_values, y_values, label=file)
 
-        df_sensor = pd.read_csv("sensor_data.csv", sep='\t')
+        df_sensor = pd.read_csv("UV_sensor_data.csv", sep='\t')
         for index, row in df_sensor.iterrows():
             plt.plot(self.y_axis,row, label="sensor_data_" + str(index+1))
 
@@ -57,7 +59,7 @@ class Plotter():
 
 
     def plot_sensor_data(self):
-        df_sensor = pd.read_csv("sensor_data.csv", sep='\t')
+        df_sensor = pd.read_csv("UV_sensor_data.csv", sep='\t')
         for index, row in df_sensor.iterrows():
             plt.plot(self.y_axis,row, label="sensor_data_" + str(index+1))
 
@@ -108,9 +110,11 @@ class Plotter():
         ## Compute the average y-value for each x
         averages = {x: sum(y_values) / len(y_values) for x, y_values in data.items()}
 
-        # Plot the results
+        ordered_data = OrderedDict(sorted(averages.items()))
+
+        ## Plot the results
         plt.figure()
-        plt.plot(averages.keys(), averages.values(), 'bo', label='Camera Data')
+        plt.plot(ordered_data.keys(), ordered_data.values(), 'b', label='Camera Data')
         plt.plot(self.y_axis, self.average_sensor_measurements, 'ro-', label="Sensor Array Data")
         plt.xlabel('Y axis (meters)')
         plt.ylabel('UV Dose (w/m^2)')

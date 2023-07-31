@@ -18,7 +18,7 @@ def plot_cube(ax, x, y, z, color):
     ax.bar3d(x, y, z, dx, dy, dz, color=color)
 
 ## Read the CSV file into a pandas DataFrame
-df = pd.read_csv('cone5.csv')
+df = pd.read_csv('mug7.csv')
 
 ## Extract the x, y, and z coordinates
 x = df['X_pos']
@@ -51,10 +51,11 @@ ax.set_ylabel('Y')
 ax.set_zlabel('Z')
 
 # Add title to the graph
-plt.title('Hard Coded Path')
+plt.title('User Input Path')
 
 ## Set equal spacing for the grid lines
-ax.set_box_aspect([.3,.5,.9])
+#ax.set_box_aspect([.4,1,.6]) #For hard coded run
+ax.set_box_aspect([.8,1,.6])
 
 ## Add a color bar
 # cbar = fig.colorbar(scatter)
