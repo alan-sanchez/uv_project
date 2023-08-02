@@ -36,10 +36,10 @@ class Broadcaster():
         self.camera.child_frame_id = 'camera_link'
 
         ## Set pose values to transform
-        self.camera.transform.translation.x = -0.09
+        self.camera.transform.translation.x = -0.07 #-0.09
         self.camera.transform.translation.y =  0.0175
-        self.camera.transform.translation.z = -0.0715
-        q = tf.transformations.quaternion_from_euler(0,math.pi/2,0)
+        self.camera.transform.translation.z = -0.0735 #-0.0715
+        q = tf.transformations.quaternion_from_euler(0,math.pi*.3677,0)
         self.camera.transform.rotation.x = q[0]
         self.camera.transform.rotation.y = q[1]
         self.camera.transform.rotation.z = q[2]
