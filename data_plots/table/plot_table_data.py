@@ -20,7 +20,7 @@ class Plotter():
 
     def plot_all_data(self):
         data = {}
-        # Read and process each CSV file
+        ## Read and process each CSV file
         for file in self.camera_files:
             df_camera = pd.read_csv(file, sep='\t')
             x_values = df_camera.iloc[:,0]
@@ -33,7 +33,7 @@ class Plotter():
 
         ## Plot the results
         plt.xlabel('Y axis (meters)')
-        plt.ylabel('UV Dose (w/m^2)')
+        plt.ylabel('UV Dose ($W/m^2$)')
         plt.title('All of the Camera and Sensor Data')
         plt.grid()
         plt.legend()
@@ -42,16 +42,16 @@ class Plotter():
         
     def plot_camera_data(self):
         data = {}
-        # Read and process each CSV file
+        ## Read and process each CSV file
         for file in self.camera_files:
             df_camera = pd.read_csv(file, sep='\t')
             x_values = df_camera.iloc[:,0]
             y_values = df_camera.iloc[:,1]
             plt.plot(x_values, y_values, label=file)
         
-        # # Plot the results
+        ## Plot the results
         plt.xlabel('Y axis (meters)')
-        plt.ylabel('UV Dose (w/m^2)')
+        plt.ylabel('UV Dose ($W/m^2$)')
         plt.title('Camera Data of Ten 1D passes')
         plt.grid()
         plt.legend()
@@ -63,9 +63,9 @@ class Plotter():
         for index, row in df_sensor.iterrows():
             plt.plot(self.y_axis,row, label="sensor_data_" + str(index+1))
 
-        # # Plot the results
+        ## Plot the results
         plt.xlabel('Y axis (meters)')
-        plt.ylabel('UV Dose (w/m^2)')
+        plt.ylabel('UV Dose ($W/m^2$)',fontsize=14)
         plt.title('Sensor Data of Ten 1D passes')
         plt.grid()
         plt.legend()
@@ -75,17 +75,19 @@ class Plotter():
     def plot_camera_with_sensor_average(self):
         data = {}
         ## Read and process each CSV file
+        iter = 1
         for file in self.camera_files:
             df_camera = pd.read_csv(file, sep='\t')
             x_values = df_camera.iloc[:,0]
             y_values = df_camera.iloc[:,1]
-            plt.plot(x_values, y_values, label=file)
+            plt.plot(x_values, y_values, label="camera_data_"+str(iter))
+            iter += 1
 
         ## Plot the results
         plt.plot(self.y_axis, self.average_sensor_measurements, 'ro-', label="Sensor Array Data")
-        plt.xlabel('Y axis (meters)')
-        plt.ylabel('Average UV Dose (w/m^2)')
-        plt.title('Camera Data of Ten 1D Passes and Average Sensor Data')
+        plt.xlabel('Y axis (meters)', fontsize=16)
+        plt.ylabel('Average UV Dose ($W/m^2$)', fontsize=16)
+        plt.title('Camera Data with Average UV Sensor Data', fontsize = 24)
         plt.grid()
         plt.legend()
         plt.show()
@@ -109,7 +111,6 @@ class Plotter():
 
         ## Compute the average y-value for each x
         averages = {x: sum(y_values) / len(y_values) for x, y_values in data.items()}
-
         ordered_data = OrderedDict(sorted(averages.items()))
 
         ## Plot the results
@@ -117,8 +118,8 @@ class Plotter():
         plt.plot(ordered_data.keys(), ordered_data.values(), 'b', label='Camera Data')
         plt.plot(self.y_axis, self.average_sensor_measurements, 'ro-', label="Sensor Array Data")
         plt.xlabel('Y axis (meters)')
-        plt.ylabel('UV Dose (w/m^2)')
-        plt.title('Average UV Dose For Ten 1D Passes')
+        plt.ylabel('UV Dose ($W/m^2$)')
+        plt.title('Average UV Dosage For Ten 1D Passes')
         plt.grid()
         plt.legend()
         plt.show()
@@ -126,8 +127,8 @@ class Plotter():
 
 if __name__ == '__main__':
     model = Plotter()
-    model.plot_averages()
-    model.plot_all_data()
-    model.plot_camera_data()
-    model.plot_sensor_data()
+    # model.plot_averages()
+    # model.plot_all_data()
+    # model.plot_camera_data()
+    # model.plot_sensor_data()
     model.plot_camera_with_sensor_average()

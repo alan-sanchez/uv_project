@@ -18,7 +18,7 @@ def plot_cube(ax, x, y, z, color):
     ax.bar3d(x, y, z, dx, dy, dz, color=color)
 
 ## Read the CSV file into a pandas DataFrame
-df = pd.read_csv('cone5.csv')
+df = pd.read_csv('cone_data.csv')
 
 ## Extract the x, y, and z coordinates
 x = df['X_pos']

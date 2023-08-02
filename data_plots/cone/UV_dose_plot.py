@@ -40,7 +40,7 @@ def plot_hist(values, bins=10):
 
 
 ## Read the CSV file into a pandas DataFrame
-df = pd.read_csv('hard_coded.csv')
+df = pd.read_csv('hard_coded_cone_data.csv')
 
 ## Extract the UV_dose coordinates
 values = df['UV_dose']/156.11
