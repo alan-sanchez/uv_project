@@ -87,6 +87,7 @@ class Accumulation {
         //Check in_poly;
 
         // int sides;
+        int region_choice;
         bool occ;
         double negative_z_arr[3];
         double magnitude_z_arr;

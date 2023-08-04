@@ -61,26 +61,45 @@ Accumulation::Accumulation() : tree(0.01){
     // // 
     dist_adjustment = 1.0;
 
-    // // // Define the number of sides from polygon
-    // sides = sizeof(polygon);
+    // Prompt the user to select a region
+    cout << "Select a region:" << endl;
+    cout << "1. Sensor Array Region" << endl;
+    cout << "2. Cone Region" << endl;
+    cout << "3. Mug Region" << endl;
 
-    // // Sensor Array region x and y bounds
-    lower_x_bound =  0.72;
-    upper_x_bound =  0.73;
-    lower_y_bound = -0.52;
-    upper_y_bound =  0.52;
+    // Read the user's choice
+    cin >> region_choice;
 
-    // // // Cone region x and y bounds
-    // lower_x_bound =  0.75;
-    // upper_x_bound =  0.90;
-    // lower_y_bound = -0.1;
-    // upper_y_bound =  0.1;
+    // Set the region bounds based on the user's choice
+    if (region_choice == 1) {
+        // Sensor Array region x and y bounds
+        lower_x_bound = 0.72;
+        upper_x_bound = 0.73;
+        lower_y_bound = -0.52;
+        upper_y_bound = 0.52;
+    } else if (region_choice == 2) {
+        // Cone region x and y bounds
+        lower_x_bound = 0.75;
+        upper_x_bound = 0.85;
+        lower_y_bound = -0.09;
+        upper_y_bound = 0.1;
+    } else if (region_choice == 3) {
+        // Mug region x and y bounds
+        lower_x_bound = 0.80;
+        upper_x_bound = 0.90;
+        lower_y_bound = -0.09;
+        upper_y_bound = 0.09;
+    } else {
+        // Invalid choice, use default region
+        cout << "Invalid choice. Using default region." << endl;
+        lower_x_bound = 0.72;
+        upper_x_bound = 0.73;
+        lower_y_bound = -0.52;
+        upper_y_bound = 0.52;
+    }
 
-    // // // Mug region x and y bounds
-    // lower_x_bound =  0.80;
-    // upper_x_bound =  0.90;
-    // lower_y_bound = -0.09;
-    // upper_y_bound =  0.09;
+    // // 
+    ROS_INFO("Accumulation node is up and running.");
 }
 
 
@@ -100,14 +119,24 @@ then creates an octree from those points.
 */
 void Accumulation::callback_command(const String& str_msg){
     if (str_msg.data == "start") {
+        // // 
+        start_time = ros::Time::now();
+
         // // Set command string
         command.data = str_msg.data;
     }
     else if (str_msg.data == "stop") {
+        // // 
+        execution_time = ros::Time::now() - start_time;
+
+        //
         command.data = str_msg.data;
 
         // // Open output file for writing
         ofstream output_file("output.csv");
+
+        // Write headers
+        output_file << "X_pos,Y_pos,Z_pos,UV_dose,Execution_time\n";
 
         // // Loop over dictionary keys and values
         for (auto const& data : acc_map_dict) {
@@ -115,7 +144,7 @@ void Accumulation::callback_command(const String& str_msg){
             output_value = data.second;
 
             // // Write every key and value to file
-            output_file << output_key[0] << "," << output_key[1] << "," << output_key[2] << "," << output_value << "\n";   
+            output_file << output_key[0] << "," << output_key[1] << "," << output_key[2] << "," << output_value << "," << execution_time <<"\n";   
         }
         // // Close output file
         output_file.close();
@@ -165,20 +194,25 @@ void Accumulation::callback_filtered_pcl2(const PointCloud2& pcl2_msg){
         convertPointCloud2ToPointCloud(uv_light_pcl2, uv_light_pcl);
         
         // // 
-        omp_set_num_threads(3);
-        #pragma omp parallel for
+        // omp_set_num_threads(5);
+        // #pragma omp parallel for
         // // Use a for loop to check if the coordinates in the baselink_pcl is in the region
         for (size_t i = 0; i < uv_light_pcl.points.size(); ++i) {
 
             // //
             x_coord = baselink_pcl.points[i].x;
             y_coord = baselink_pcl.points[i].y;
+            z_coord = baselink_pcl.points[i].z;
 
             // // // Check to see if point is in the predefined disinfeciton region
             // point_for_in_polygon_check = {baselink_pcl.points[i].x, baselink_pcl.points[i].y};
             // if (!in_poly.checkInside(polygon, sides, point_for_in_polygon_check)){
             
-            if (x_coord >= lower_x_bound && x_coord <= upper_x_bound && y_coord >= lower_y_bound && y_coord <= upper_y_bound){
+            if (x_coord >= lower_x_bound && 
+                x_coord <= upper_x_bound && 
+                y_coord >= lower_y_bound && 
+                y_coord <= upper_y_bound &&
+                z_coord >= .775){
                 // // Calculate the angle (radians) between the negative 
                 // // z-axis vector and UV light x,y, and z coordinates
                 ray_length = sqrt(pow(uv_light_pcl.points[i].x, 2) 
