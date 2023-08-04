@@ -82,12 +82,16 @@ def playback():
                                         velocity_scaling_factor = 0.2,
                                         acceleration_scaling_factor = .2,
                                         )
+    start_time = rospy.Time.now()
     command_pub.publish("start")
     if fraction > 0.9:
         group.execute(plan, wait=True)
     else:
         print("nope", fraction)# rospy.WARN("Could not plan the cartesian path")
     command_pub.publish("stop")
+    time_= rospy.Time.now() - start_time
+    convert_time = time_.to_sec()
+    print("\n total time: " + str(convert_time))
 
     # Save movement trajectory so that it doesnt have to be recalculated later
     save_traj = input("Save this trajectory? Enter 1 for yes or 2 for no: ")
@@ -157,6 +161,8 @@ if __name__ == '__main__':
             print("\nRecording movement...\n")
             print("\nPress ctrl+c to stop recording and save to file\n")
             
+            # Start time
+            start_time = rospy.Time.now()
             command_pub.publish("start")
     
             while(True) :
@@ -173,13 +179,11 @@ if __name__ == '__main__':
                 # For saving poses at correct rate. Ensures data set is not too large.
                 time.sleep(rate_in_seconds)
 
-
-
                 ## keyboard interupt. stop collecting data and save to file
                 if interrupted:
-                    # func()
-                    # command_pub = rospy.Publisher('/command', String, queue_size=10)
-                    # command_pub.publish("stop")
+                    time_= rospy.Time.now() - start_time
+                    convert_time = time_.to_sec()
+                    print("\n total time: " + str(convert_time))
                     print("\nSaving movement...\n")
                     save_movement(p_x[1:], p_y[1:], p_z[1:], q_x[1:], q_y[1:], q_z[1:], q_w[1:], rate_in_seconds)   # removes first pose from list since first pose can be bugged
                     interrupted = False
