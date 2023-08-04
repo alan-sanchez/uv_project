@@ -41,7 +41,7 @@ def plot_hist(values, bins=10):
 
 
 ## Read the CSV file into a pandas DataFrame
-df = pd.read_csv('mug7.csv')
+df = pd.read_csv('no_feedback_mug_2.csv')
 
 ## Extract the UV_dose coordinates
 values = df['UV_dose']/156.11
