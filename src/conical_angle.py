@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # Import modules
 import rospy
@@ -22,7 +22,7 @@ class IrradianceVectors(object):
         :param self: The self reference.
         """
         ## Initialize Subscriber
-        self.combined_pcl2_sub = rospy.Subscriber('/pcl_depthmap', PointCloud2, self.callback_pcl2)
+        self.combined_pcl2_sub = rospy.Subscriber('/filtered_pcl2', PointCloud2, self.callback_pcl2)
         
         ## Instantiate a `tf.TransformListener` object
         self.listener = tf.TransformListener()
@@ -55,7 +55,7 @@ class IrradianceVectors(object):
         for data in pc2.read_points(self.pcl2_cloud, skip_nans=True):
             pcl_cloud.points.append(Point32(data[0],data[1],data[2]))
 
-        ## Transform the pointcloud message to reference the base_link
+        ## Transform the pointcloud message to reference the gripper_link
         transformed_cloud = self.transform_pointcloud(pcl_cloud)
 
         ## Compute conical angle
@@ -65,6 +65,8 @@ class IrradianceVectors(object):
             rad = np.arccos(numerator/denominator)
 
             print("conical angle in radians: " + str(rad))
+            print("x,y, and z coordinates: " + str([loc.x,loc.y,loc.z]))
+            rospy.sleep(.25)
 
     def transform_pointcloud(self,pcl_cloud):
         """
