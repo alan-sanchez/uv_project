@@ -1,28 +1,28 @@
 #!/usr/bin/env python
 
 import rospy
-
-from sensor_msgs.msg import JointState
-from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
-
 import pickle
 
+from sensor_msgs.msg import JointState
+from std_msgs.msg import String
 from itertools import compress
-
+from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 
 class ArmRecorder:
 	def __init__(self):
 		## Initialize in a stopped state.
 		self.recording = False
+		self.flag = 0
 
 		## Create space to store things.
 		self.reset()
 
 		## Subscribe to the joint states.
 		self.sub = rospy.Subscriber('joint_states', JointState, self.joint_callback, queue_size=1)
+		self.timer = rospy.Timer(rospy.Duration(0.1), self.publish_callback)
 
 		## Initialize Publisher
-        self.command_pub = rospy.Publisher('/command', String, queue_size=1)
+		self.command_pub = rospy.Publisher('/command', String, queue_size=10)
 
 	def reset(self):
 		self.trajectory = []
@@ -39,6 +39,15 @@ class ArmRecorder:
 		# Just save the whole message.
 		if len(msg.name) == 13: # Needed a conditional statement because the gripper joints are published faster than the rest of the joints. 
 			self.trajectory.append(msg)
+
+	def publish_callback(self, event):
+		if self.recording == True and self.flag == 0:
+			self.command_pub.publish("start")
+			self.flag = 1
+
+		# elif self.recording == False and self.flag == 1:
+		# 	self.command_pub.publish("stop")
+		# 	self.flag = 0
 
 	def save(self, filename):
 		ARM_JOINTS = (
@@ -77,6 +86,7 @@ class ArmRecorder:
 		rospy.loginfo('{}: Saved {} waypoints to {}.'.format(self.__class__.__name__, len(trajectory.points), filename))
 
 
+
 if __name__ == '__main__':
 	rospy.init_node('record')
 
@@ -86,7 +96,7 @@ if __name__ == '__main__':
 	rospy.spin()
 
 	recorder.stop()
-
-	# Get user input for the filename
-    filename = input("Enter a filename to save: ")
+ 
+ 	## Get user input for the filename
+	filename = input("Enter a filename to save: ")
 	recorder.save(filename + '.pkl')
