@@ -78,6 +78,8 @@ class Accumulation {
         octomap::Pointcloud octomapCloud;
         octomap::OcTree tree;
         octomap::OcTreeKey KeyChecked;
+        octomap::OcTreeKey min_key;
+        octomap::OcTreeKey max_key;
         octomap::point3d origin;
         octomap::point3d point_in_conical_bound;
         octomap::point3d octomap_type_coord;
@@ -88,6 +90,7 @@ class Accumulation {
 
         // int sides;
         int region_choice;
+        int num_cells_in_region;
         bool occ;
         double negative_z_arr[3];
         double magnitude_z_arr;
@@ -106,7 +109,7 @@ class Accumulation {
         double dose;
         double max_dose_value;
         double r; double g; double b; double a;
-        double lower_x_bound; double upper_x_bound; double lower_y_bound; double upper_y_bound;
+        double lower_x_bound; double upper_x_bound; double lower_y_bound; double upper_y_bound; double lower_z_bound;
         double x_coord; double y_coord; double z_coord;
         double output_value;
         vector<double> output_key;
