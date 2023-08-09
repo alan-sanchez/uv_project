@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import rospy
 import pickle
@@ -29,7 +29,7 @@ class ArmRecorder:
 
 	def start(self):
 		self.recording = True
-		rospy.loginfo('{}: Starting recording.'.format(self.__class__.__name__))
+		# rospy.loginfo('{}: Starting recording.'.format(self.__class__.__name__))
 
 	def stop(self):
 		self.recording = False
@@ -38,10 +38,14 @@ class ArmRecorder:
 	def joint_callback(self, msg):
 		# Just save the whole message.
 		if len(msg.name) == 13: # Needed a conditional statement because the gripper joints are published faster than the rest of the joints. 
+			# Round the joint positions to two decimal places
+			rounded_positions = [round(pos, 2) for pos in msg.position]
+			msg.position = rounded_positions
 			self.trajectory.append(msg)
 
 	def publish_callback(self, event):
 		if self.recording == True and self.flag == 0:
+			rospy.loginfo('{}: Starting recording.'.format(self.__class__.__name__))
 			self.command_pub.publish("start")
 			self.flag = 1
 
