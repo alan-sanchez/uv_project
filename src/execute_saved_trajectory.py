@@ -5,8 +5,14 @@ import sys
 import rospy
 import yaml 
 import signal
+import actionlib
+import pickle
+
 import moveit_commander
 import moveit_msgs.msg
+from copy import deepcopy
+from control_msgs.msg import FollowJointTrajectoryAction, FollowJointTrajectoryGoal, FollowJointTrajectoryResult, JointTolerance
+
 
 ## Import message types and other python librarires
 from moveit_python import PlanningSceneInterface, MoveGroupInterface
@@ -25,6 +31,9 @@ class ExecutePath(object):
         :param self: The self reference.
         """
         super(ExecutePath, self).__init__()
+        # self.action_client = actionlib.SimpleActionClient('arm_with_torso_controller/follow_joint_trajectory', FollowJointTrajectoryAction)
+        # self.action_client.wait_for_server()
+        # rospy.loginfo('{}: Action client ready.'.format(self.__class__.__name__))
         
         ## Initialize Publisher
         self.command_pub = rospy.Publisher('/command', String, queue_size=10)
@@ -53,9 +62,9 @@ class ExecutePath(object):
         :param self: The self reference.
         :param vel: Float value for arm velocity.
         """
-        rospy.loginfo("Waiting for MoveIt...")
-        self.client = MoveGroupInterface("arm_with_torso", "base_link")
-        rospy.loginfo("...connected")
+        # rospy.loginfo("Waiting for MoveIt...")
+        # self.client = MoveGroupInterface("arm_with_torso", "base_link")
+        # rospy.loginfo("...connected")
 
         ## Padding does not work (especially for self collisions)
         ## So we are adding a box above the base of the robot
@@ -65,6 +74,43 @@ class ExecutePath(object):
         joints = ["torso_lift_joint", "shoulder_pan_joint", "shoulder_lift_joint", "upperarm_roll_joint",
                   "elbow_flex_joint", "forearm_roll_joint", "wrist_flex_joint", "wrist_roll_joint"]
         pose =[.15, 1.41, 0.30, -0.22, -2.25, -1.56, 1.80, -0.37,]
+
+        # with open("test.pkl", 'rb') as f:
+		# 	trajectory = pickle.load(f)
+
+        
+        # trajectory.points = trajectory.points[::50]
+        self.group.set_max_velocity_scaling_factor(.2)
+        self.group.set_joint_value_target(pose)
+        plan = self.group.plan()
+        # print(plan.joint_trajectory.header)
+        # plan.joint_trajectory = trajectory
+        # plan.joint_trajectory.header.seq = 0
+        # plan.joint_trajectory.header.stamp.secs = 0
+        # plan.joint_trajectory.header.stamp.nsecs = 0
+        # plan.joint_trajectory.header.frame_id="base_link"
+        # print(plan.joint_trajectory.header)
+       
+        # plan2 = deepcopy(plan)
+
+        #for i in range(len(plan.joint_trajectory.points)):
+        #    plan.joint_trajectory.points[i].accelerations = []
+        # print(plan.joint_trajectory.points)
+      
+        self.group.execute(plan)
+
+        # goal = FollowJointTrajectoryGoal()
+        # goal.trajectory = plan.joint_trajectory
+
+        # # You might have to also set path_tolerance, goal_tolerance and goal_time_tolerance here
+        # # See http://docs.ros.org/en/api/control_msgs/html/action/FollowJointTrajectory.html
+
+        # # Send the goal to the action client, and wait for it to finish.
+        # self.action_client.send_goal(goal)
+        # self.action_client.wait_for_result()
+        # result = self.action_client.get_result()
+        # print("Result ", result)
+        """
         while not rospy.is_shutdown():
             result = self.client.moveToJointPosition(joints,
                                                      pose,
@@ -72,7 +118,7 @@ class ExecutePath(object):
                                                      max_velocity_scaling_factor=vel)
             if result and result.error_code.val == MoveItErrorCodes.SUCCESS:
                 scene.removeCollisionObject("keepout")
-                return 0 
+                return 0 """
 
     def traj_playback(self, choice):
         """
@@ -81,11 +127,15 @@ class ExecutePath(object):
         if choice == 1:
             file_name = 'table.yaml'
         elif choice == 2:
-            file_name = 'cone_b.yaml'
+            file_name = 'cone.yaml'
         elif choice == 3:
-            file_name = 'mug_b.yaml'
+            file_name = 'mug.yaml'
         elif choice == 4:
-            file_name = 'test8.yaml'
+            file_name = 'feedback_mug_1.yaml'
+        elif choice == 5:
+            file_name = 'feedback_mug_2.yaml'
+        elif choice == 6:
+            file_name = 'feedback_cone_3.yaml'
         with open(file_name, 'r') as user_file:
             traj = yaml.load(user_file)
 
@@ -114,9 +164,9 @@ if __name__ == '__main__':
         motion.init_pose()
 
         ## 
-        print("\nType the number of the trajectory to play back.\n1: Table\n2: Cone\n3: Mug\n4: Sensor Array\n\n")
+        print("\nType the number of the trajectory to play back.\n1: Table\n2: Cone\n3: Mug\n4: Sensor Array\n5: Cone User Input\n6: Mug Uwer Input\n\n")
         choice = input("Selection: ")
-        if choice == 1 or choice == 2 or choice == 3 or choice == 4:
+        if choice == 1 or choice == 2 or choice == 3 or choice == 4 or choice == 5 or choice == 6:
             motion.traj_playback(choice)
         else:
             print("Enter 1, 2, 3, or 4")
