@@ -59,7 +59,10 @@ Accumulation::Accumulation() : tree(0.01){
     origin = point3d(0,0,0);
 
     // // 
-    dist_adjustment = 1.0;
+    dist_adjustment = 1.25;
+
+    // // 
+    num_cells_in_region = 0;
 
     // Prompt the user to select a region
     cout << "Select a region:" << endl;
@@ -77,18 +80,21 @@ Accumulation::Accumulation() : tree(0.01){
         upper_x_bound = 0.73;
         lower_y_bound = -0.52;
         upper_y_bound = 0.52;
+        lower_z_bound = 0.30;
     } else if (region_choice == 2) {
         // Cone region x and y bounds
         lower_x_bound = 0.75;
         upper_x_bound = 0.85;
         lower_y_bound = -0.09;
         upper_y_bound = 0.1;
+        lower_z_bound = 0.775;
     } else if (region_choice == 3) {
         // Mug region x and y bounds
         lower_x_bound = 0.80;
         upper_x_bound = 0.90;
         lower_y_bound = -0.09;
         upper_y_bound = 0.09;
+        lower_z_bound = 0.775;
     } else {
         // Invalid choice, use default region
         cout << "Invalid choice. Using default region." << endl;
@@ -96,7 +102,11 @@ Accumulation::Accumulation() : tree(0.01){
         upper_x_bound = 0.73;
         lower_y_bound = -0.52;
         upper_y_bound = 0.52;
+        lower_z_bound = 0.30;
     }
+
+    min_key = tree.coordToKey(octomap::point3d(lower_x_bound, lower_y_bound, lower_z_bound));
+    max_key = tree.coordToKey(octomap::point3d(upper_x_bound, upper_y_bound, 1.0));
 
     // // 
     ROS_INFO("Accumulation node is up and running.");
@@ -136,7 +146,7 @@ void Accumulation::callback_command(const String& str_msg){
         ofstream output_file("output.csv");
 
         // Write headers
-        output_file << "X_pos,Y_pos,Z_pos,UV_dose,Execution_time\n";
+        output_file << "X_pos,Y_pos,Z_pos,UV_dose,Execution_time,Num_cells_in_region\n";
 
         // // Loop over dictionary keys and values
         for (auto const& data : acc_map_dict) {
@@ -144,7 +154,7 @@ void Accumulation::callback_command(const String& str_msg){
             output_value = data.second;
 
             // // Write every key and value to file
-            output_file << output_key[0] << "," << output_key[1] << "," << output_key[2] << "," << output_value << "," << execution_time <<"\n";   
+            output_file << output_key[0] << "," << output_key[1] << "," << output_key[2] << "," << output_value << "," << execution_time << "," << num_cells_in_region << "\n";   
         }
         // // Close output file
         output_file.close();
@@ -180,7 +190,20 @@ void Accumulation::callback_filtered_pcl2(const PointCloud2& pcl2_msg){
             temp_pcl2 = transform_PointCloud2(oct_center_pcl2,"base_link");
             pointCloud2ToOctomap(temp_pcl2, octomapCloud);
             tree.insertPointCloud(octomapCloud, origin);  
+
+            // Loop through the keys within the region and count the cells
+            for (int x = min_key[0]; x <= max_key[0]; x++) {
+                for (int y = min_key[1]; y <= max_key[1]; y++) {
+                    for (int z = min_key[2]; z <= max_key[2]; z++) {
+                        octomap::OcTreeKey key(x, y, z);
+                        if (tree.search(key) != NULL) {
+                            num_cells_in_region++;
+                        }
+                    }
+                }
+            }
         } 
+        cout<<num_cells_in_region<<endl;
         // // Create temporary dictionary
         map< vector<double>, vector<double> > temp_dict;
         vector<double> coord;
@@ -212,7 +235,7 @@ void Accumulation::callback_filtered_pcl2(const PointCloud2& pcl2_msg){
                 x_coord <= upper_x_bound && 
                 y_coord >= lower_y_bound && 
                 y_coord <= upper_y_bound &&
-                z_coord >= .775){
+                z_coord >= lower_z_bound){
                 // // Calculate the angle (radians) between the negative 
                 // // z-axis vector and UV light x,y, and z coordinates
                 ray_length = sqrt(pow(uv_light_pcl.points[i].x, 2) 
@@ -246,7 +269,7 @@ void Accumulation::callback_filtered_pcl2(const PointCloud2& pcl2_msg){
                             // // compute the UV dose for the `conical_angle`
                             radius = 0.3 * tan(conical_angle);
                             ir = irradiance.model(radius) * 10; // multiply by 10 to convert from mW/cm^2 to W/m^2
-                            dist_ratio = pow(0.3, 2) / pow(ray_length*1.25, 2); // Inverse square law ratio
+                            dist_ratio = pow(0.3, 2) / pow(ray_length*dist_adjustment, 2); // Inverse square law ratio
                             dose = dist_ratio * uv_time_exposure * ir;
 
                             // //
