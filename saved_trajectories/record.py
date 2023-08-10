@@ -19,7 +19,7 @@ class ArmRecorder:
 
 		## Subscribe to the joint states.
 		self.sub = rospy.Subscriber('joint_states', JointState, self.joint_callback, queue_size=1)
-		self.timer = rospy.Timer(rospy.Duration(0.1), self.publish_callback)
+		self.timer = rospy.Timer(rospy.Duration(0.5), self.publish_callback)
 
 		## Initialize Publisher
 		self.command_pub = rospy.Publisher('/command', String, queue_size=10)

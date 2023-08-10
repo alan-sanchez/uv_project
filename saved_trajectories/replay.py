@@ -37,28 +37,42 @@ class ArmReplayer(object):
 		with open(filename, 'rb') as f:
 			trajectory = pickle.load(f)
 
+		
 		# Define the position to check
 		target_position = [0.15, 1.41, 0.3, -0.22, -2.25, -1.56, 1.8, -0.37]
 		position_indices_to_remove = []
 
+		tolerance = 0.01  # Tolerance value
+
 		for i, point in enumerate(trajectory.points):
-			if point.positions == target_position:
-				position_indices_to_remove.append(i)
+			is_within_tolerance = True
+			for j, pos in enumerate(point.positions):
+				if abs(pos - target_position[j]) > tolerance:
+					is_within_tolerance = False
+					break  # Exit inner loop once a mismatch is found
+					
+			if is_within_tolerance:
+				position_indices_to_remove.append(i)  # Append the index to remove if position is within tolerance
 
+		# Removing points from the trajectory
 		for index in reversed(position_indices_to_remove):
-			del trajectory.points[index]	
+			del trajectory.points[index]
 
-		trajectory.points = trajectory.points[::100]
+		##
+		trajectory.points = trajectory.points[::100] # Getting every 100 point at 100hz (equivalent to 1hz)
 		trajectory.header.seq = 0
 		trajectory.header.stamp.secs = 0
 		trajectory.header.stamp.nsecs = 0 
 		trajectory.header.frame_id="base_link"
 		rospy.loginfo('{}: Loaded trajectory with {} waypoints.'.format(self.__class__.__name__, len(trajectory.points)))
 
+
 		# print(trajectory.points)
 		#Scale the durations of the actions
 		for i in range(len(trajectory.points)):
+			trajectory.points[i].time_from_start = rospy.Duration(i)
 			trajectory.points[i].time_from_start *= scale_factor
+			# print(trajectory.points[i].time_from_start )
 
 		# Create a goal.
 		goal = FollowJointTrajectoryGoal()
