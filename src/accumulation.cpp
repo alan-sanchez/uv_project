@@ -90,10 +90,10 @@ Accumulation::Accumulation() : tree(0.01){
         lower_z_bound = 0.775;
     } else if (region_choice == 3) {
         // Mug region x and y bounds
-        lower_x_bound = 0.80;
+        lower_x_bound = 0.75;
         upper_x_bound = 0.90;
         lower_y_bound = -0.09;
-        upper_y_bound = 0.09;
+        upper_y_bound = 0.11;
         lower_z_bound = 0.775;
     } else {
         // Invalid choice, use default region
@@ -106,7 +106,10 @@ Accumulation::Accumulation() : tree(0.01){
     }
 
     min_key = tree.coordToKey(octomap::point3d(lower_x_bound, lower_y_bound, lower_z_bound));
-    max_key = tree.coordToKey(octomap::point3d(upper_x_bound, upper_y_bound, 1.0));
+    max_key = tree.coordToKey(octomap::point3d(upper_x_bound, upper_y_bound, 3.0));
+
+    // std::cout << "min_key values: " << min_key[0] << " " << min_key[1] << " " << min_key[2] << std::endl;
+    // std::cout << "min_key values: " << max_key[0] << " " << max_key[1] << " " << max_key[2] << std::endl;
 
     // // 
     ROS_INFO("Accumulation node is up and running.");
@@ -175,6 +178,7 @@ void Accumulation::callback_filtered_pcl2(const PointCloud2& pcl2_msg){
         if ((ros::Time::now().toSec() - prev_time) > 2.0) {
             prev_time = ros::Time::now().toSec();
             uv_time_exposure = 0;
+            num_cells_in_region = 0;
 
             // // Clear previous octree, markers, and dictionaries
             tree.clear(); 
@@ -189,21 +193,26 @@ void Accumulation::callback_filtered_pcl2(const PointCloud2& pcl2_msg){
             // // convert to the octomap format and insert into the octree.
             temp_pcl2 = transform_PointCloud2(oct_center_pcl2,"base_link");
             pointCloud2ToOctomap(temp_pcl2, octomapCloud);
-            tree.insertPointCloud(octomapCloud, origin);  
+            tree.insertPointCloud(octomapCloud, origin); 
+
+            std::set<octomap::OcTreeNode*> processed_nodes;           
 
             // Loop through the keys within the region and count the cells
             for (int x = min_key[0]; x <= max_key[0]; x++) {
                 for (int y = min_key[1]; y <= max_key[1]; y++) {
                     for (int z = min_key[2]; z <= max_key[2]; z++) {
-                        octomap::OcTreeKey key(x, y, z);
-                        if (tree.search(key) != NULL) {
+                        octomap::OcTreeKey key_count(x, y, z);
+                        octomap::OcTreeNode* node_check = tree.search(key_count);
+                        if (node != NULL && processed_nodes.find(node_check) == processed_nodes.end()) {
                             num_cells_in_region++;
+                            processed_nodes.insert(node_check);
+
                         }
                     }
                 }
             }
+            cout<<num_cells_in_region<<endl;
         } 
-        cout<<num_cells_in_region<<endl;
         // // Create temporary dictionary
         map< vector<double>, vector<double> > temp_dict;
         vector<double> coord;
