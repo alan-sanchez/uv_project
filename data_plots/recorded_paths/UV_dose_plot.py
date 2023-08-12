@@ -6,9 +6,6 @@ import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
 
 def plot_hist(values, bins=10):
-    # Create the histogram with custom bins
-    # plt.hist(values,bins=bins, edgecolor='black')
-
     # Add a vertical line at a specific value (e.g., x=0)
     plt.axvline(x=1, color='red', linestyle='--', label='Required UV dose')
 
@@ -29,28 +26,25 @@ def plot_hist(values, bins=10):
         if x >.9:
             num_inactive_cells += count
     
-    # labels = [f"{b}" if b != 2.25 else "2.5+" for b in bins]
     plt.xlabel('Percentage of the required UV dose')
     plt.ylabel('Frequency')
     plt.title('Histogram of Hard Coded Path (# of Inactivated/Green Cells: '+str(int(num_inactive_cells))+')')
-    # plt.xticks(bins, labels)
     plt.grid(axis='y')
     plt.legend()
     plt.show()
 
 
 ## Read the CSV file into a pandas DataFrame
-df = pd.read_csv('FB_cone_2.csv')
+df = pd.read_csv('hard_coded_cone.csv')
 
 ## Extract the UV_dose coordinates
 values = df['UV_dose']/156.11
 
-# ## Set any value over 2.0 to 2.0 using NumPy's where function
-# values = np.where(values > 2.0, 2.125, values)
-
-## 
-# custom_bins = [0, .25, .50, .75, 1, 1.25, 1.5, 1.75, 2.0, +2.25]
+# Define custom bin edges
+bin_width = 1.0  # Set your desired bin width
+max_value = max(values)
+bin_edges = [ i * bin_width for i in range(int(max_value/bin_width))]
 
 ##
-plot_hist(values)#, custom_bins)
+plot_hist(values, bin_edges)
 
