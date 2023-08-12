@@ -4,9 +4,8 @@ import rospy
 import tf
 import tf2_ros
 import pickle
+from std_msgs.msg import String
 from geometry_msgs.msg import PointStamped
-from geometry_msgs.msg import Vector3Stamped, PointStamped, PoseStamped
-from std_msgs.msg import Header, String, Float32
 
 
 class EELocator:
@@ -25,7 +24,7 @@ class EELocator:
 
         self.ps.point.x = 0.0
         self.ps.point.y = 0.0
-        self.ps.point.z = -0.01
+        self.ps.point.z = -0.1
 
         self.command = None
 
@@ -40,8 +39,21 @@ class EELocator:
         """
         self.command = msg.data
 
-        
+        if self.command == "start":
+            rospy.loginfo('Recording Poses.')
 
+        elif self.command == "stop":
+            ## Get user input for the filename
+            filename = input("Enter a filename to save: ")
+            # recorder.save(filename + '.pkl')
+
+            with open(filename + '.pkl', 'wb') as f:
+                pickle.dump(self.recorded_directional_vector, f)
+
+            rospy.loginfo('Recorded {} end effector poses to {}.'.format(len(self.recorded_directional_vector), filename))
+            rospy.loginfo('Recording finished.')
+
+            self.recorded_directional_vector = []
 
 
     def vector_calculator(self, msg):
@@ -52,19 +64,8 @@ class EELocator:
             tip_vector = [new_ps.point.x, new_ps.point.y, new_ps.point.z]
             self.recorded_directional_vector.append([trans, tip_vector])
 
-        elif self.command =="stop":
-            filename = 'recorded_poses.pkl'
-            with open(filename, 'wb') as f:
-                pickle.dump(self.recorded_directional_vector, f)
-
-            rospy.loginfo('Recorded {} end effector poses to {}.'.format(len(self.recorded_directional_vector), filename))
-            rospy.loginfo('Recording finished.')
-
-            self.recorded_directional_vector = []
-            self.command = None
-
+    
             
-
     def find_ee_pose(self):
         """
         Function that finds the pose of the ee_link relative to the base_link frame
@@ -91,25 +92,10 @@ class EELocator:
                 pass
 
 if __name__ == '__main__':
-    rospy.init_node('ee_locator')
+    rospy.init_node('ee_recorder')
     obj = EELocator()
+    rospy.loginfo('Recorder node is running.')
+
 
     recorded_poses = []
-
-    rospy.loginfo('Begin Recording.')
-
     rospy.spin()
-
-    # rate = rospy.Rate(1.0)
-    # while not rospy.is_shutdown():
-    #     val = obj.ee_pose()
-    #     # recorded_poses.append(val)
-    #     print(val)
-    #     rate.sleep()
-
-    # filename = 'recorded_poses.pkl'
-    # with open(filename, 'wb') as f:
-    #     pickle.dump(recorded_poses, f)
-
-    # rospy.loginfo('Recorded {} end effector poses to {}.'.format(len(recorded_poses), filename))
-    # rospy.loginfo('Recording finished.')
