@@ -69,6 +69,8 @@ Accumulation::Accumulation() : tree(0.01){
     cout << "1. Sensor Array Region" << endl;
     cout << "2. Cone Region" << endl;
     cout << "3. Mug Region" << endl;
+    cout << "4. Table Region" << endl;
+    
 
     // Read the user's choice
     cin >> region_choice;
@@ -95,6 +97,13 @@ Accumulation::Accumulation() : tree(0.01){
         lower_y_bound = -0.09;
         upper_y_bound = 0.11;
         lower_z_bound = 0.775;
+    } else if (region_choice == 4) {
+        // Table region x and y bounds
+        lower_x_bound = 0.75;
+        upper_x_bound = 1;
+        lower_y_bound = -.2;
+        upper_y_bound = 0.2;
+        lower_z_bound = 0.30;
     } else {
         // Invalid choice, use default region
         cout << "Invalid choice. Using default region." << endl;
