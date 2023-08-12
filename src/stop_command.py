@@ -18,15 +18,13 @@ class Stopper(object):
         A function that initializes subscriber, publisher, moveit_commander,and
         planning scene.
         :param self: The self reference.
-        """
-        super(ExecutePath, self).__init__()
-        
+        """        
         ## Initialize Publisher
         self.command_pub = rospy.Publisher('/command', String, queue_size=10)
 
 
 
-    def send_stop(self, choice):
+    def send_stop(self):
         ##
         self.command_pub.publish("stop")
 
@@ -45,7 +43,7 @@ if __name__ == '__main__':
         rospy.sleep(2)
 
         print("")
-        print("====== Press 'Enter' to return to initial position =======")
+        print("====== Press 'Enter' to return to send stop command =======")
         raw_input()
         cmd.send_stop()
 
