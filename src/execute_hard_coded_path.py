@@ -68,7 +68,7 @@ class ExecutePath(object):
         #              Pose(Point(0.725, -0.50, 1.12),Quaternion(0.000, 0.0, 0, 1)),
         #              Pose(Point(0.725, -0.60, 1.12),Quaternion(0.000, 0.0, 0, 1)),#-0.131, 0, 0, 0.991)),
         #              ]
-        # waypoints = [Pose(Point(0.725,  0.5, 1.17),Quaternion(0,0,0,1))]
+        waypoints = [Pose(Point(0.725,  -0.5, 1.17),Quaternion(0,0,0,1))]
 
         ################### Cartesian waypoints for cone #####################
         # waypoints = [Pose(Point(0.7,  0.3,  1.266), Quaternion(-0.36, -0.29, -0.21, 0.86)),
@@ -86,21 +86,30 @@ class ExecutePath(object):
         # waypoints = [Pose(Point(0.85,  0.0, 1.42),Quaternion(0.00, 0.00, 0.00,  1.00)),]
 
         ################### Cartesian waypoints for mug #####################
-        waypoints = [Pose(Point(0.846, 0.413, 0.977),Quaternion(-0.54, -0.01, -0.03, 0.84)),
-                     Pose(Point(0.841, 0.286, 1.171),Quaternion(-0.33, -0.01, -0.03, 0.94)),
-                     Pose(Point(0.836, 0.072, 1.211),Quaternion(-0.02, -0.0, -0.03, 1.0)),
-                     Pose(Point(0.836,-0.101, 1.21),Quaternion(-0.02, -0.0, -0.03, 1.0)),
-                     Pose(Point(0.658, -0.261, 1.063),Quaternion(-0.39, 0.17, 0.19, -0.88)),
-                     Pose(Point(0.594, 0.069, 1.057),Quaternion(0.06, 0.36, 0.14, -0.92)),
-                     Pose(Point(0.648, 0.288, 1.08),Quaternion(-0.33, -0.27, -0.11, 0.9)),
+        # waypoints = [Pose(Point(0.846, 0.413, 0.977),Quaternion(-0.54, -0.01, -0.03, 0.84)),
+        #              Pose(Point(0.841, 0.286, 1.171),Quaternion(-0.33, -0.01, -0.03, 0.94)),
+        #              Pose(Point(0.836, 0.072, 1.211),Quaternion(-0.02, -0.0, -0.03, 1.0)),
+        #              Pose(Point(0.836,-0.101, 1.21),Quaternion(-0.02, -0.0, -0.03, 1.0)),
+        #              Pose(Point(0.658, -0.261, 1.063),Quaternion(-0.39, 0.17, 0.19, -0.88)),
+        #              Pose(Point(0.594, 0.069, 1.057),Quaternion(0.06, 0.36, 0.14, -0.92)),
+        #              Pose(Point(0.648, 0.288, 1.08),Quaternion(-0.33, -0.27, -0.11, 0.9)),
 
-                    #  Pose(Point(0.85, -0.10, 1.2),Quaternion(0.00, 0.00, 0.00,  1.00)),
-                    #  Pose(Point(0.80, -0.10, 1.2),Quaternion(0.00, 0.00, 0.00,  1.00)),
-                    #  Pose(Point(0.80,  0.00, 1.2),Quaternion(0.00, 0.00, 0.00,  1.00)),
-                    #  Pose(Point(0.80,  0.10, 1.2),Quaternion(0.00, 0.00, 0.00,  1.00)),        
-                   ]
+        #             #  Pose(Point(0.85, -0.10, 1.2),Quaternion(0.00, 0.00, 0.00,  1.00)),
+        #             #  Pose(Point(0.80, -0.10, 1.2),Quaternion(0.00, 0.00, 0.00,  1.00)),
+        #             #  Pose(Point(0.80,  0.00, 1.2),Quaternion(0.00, 0.00, 0.00,  1.00)),
+        #             #  Pose(Point(0.80,  0.10, 1.2),Quaternion(0.00, 0.00, 0.00,  1.00)),        
+        #            ]
 
-        # waypoints = [Pose(Point(0.85,  0.0, 1.2),Quaternion(0.00, 0.00, 0.00,  1.00)),]
+
+        ################### Cartesian waypoints for square region #####################
+        # waypoints = [Pose(Point(0.846, 0.413, 0.977),Quaternion(-0.54, -0.01, -0.03, 0.84)),
+        #              Pose(Point(0.841, 0.286, 1.171),Quaternion(-0.33, -0.01, -0.03, 0.94)),
+        #              Pose(Point(0.836, 0.072, 1.211),Quaternion(-0.02, -0.0, -0.03, 1.0)),
+        #              
+
+        waypoints = [Pose(Point(.75,  0.2, 1.2),Quaternion(0.00, 0.00, 0.00,  1.00)),]
+
+       
 
         (plan, fraction) = self.group.compute_cartesian_path(waypoints, # waypoints to follow
                                                              0.1,           # eef_step
@@ -111,16 +120,16 @@ class ExecutePath(object):
                                             velocity_scaling_factor = self.velocity,
                                             )
         
-        print("\n\nEnter 1 to record trajectory \nEnter 2 if not \nEnter 3 to cancel \n")
-        save_traj = input("Choose an option: ")
+        # print("\n\nEnter 1 to record trajectory \nEnter 2 if not \nEnter 3 to cancel \n")
+        # save_traj = input("Choose an option: ")
 
-        if save_traj == 1:
-            traj_name = raw_input('Name the trajectory: ')
-            with open(traj_name + '.yaml', 'w') as outfile:
-                yaml.dump(plan, outfile, default_flow_style=True)
+        # if save_traj == 1:
+        #     traj_name = raw_input('Name the trajectory: ')
+        #     with open(traj_name + '.yaml', 'w') as outfile:
+        #         yaml.dump(plan, outfile, default_flow_style=True)
 
-        elif save_traj == 3:
-            return None
+        # elif save_traj == 3:
+        #     return None
 
         return plan
    
@@ -178,10 +187,10 @@ if __name__ == '__main__':
         ## Pause for 2 seconds after the motion is completed
         rospy.sleep(2)
 
-        print("")
-        print("====== Press 'Enter' to return to initial position =======")
-        raw_input()
-        motion.init_pose()
+        # print("")
+        # print("====== Press 'Enter' to return to initial position =======")
+        # raw_input()
+        # motion.init_pose()
         
         ## Wait for user input before generating new disinfection region
         ## Print out instructions for user input to get things started

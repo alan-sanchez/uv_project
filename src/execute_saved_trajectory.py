@@ -131,7 +131,7 @@ class ExecutePath(object):
         elif choice == 3:
             file_name = 'mug.yaml'
         elif choice == 4:
-            file_name = 'feedback_mug_1.yaml'
+            file_name = 'sensor_array.yaml'
         elif choice == 5:
             file_name = 'feedback_mug_2.yaml'
         elif choice == 6:
