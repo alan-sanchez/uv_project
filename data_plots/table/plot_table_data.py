@@ -17,7 +17,7 @@ class Plotter():
         self.average_sensor_measurements = [250.18, 233.42, 186.98, 156.38, 162.70, 195.86, 372.14,	
                                             190.35, 187.01, 172.47, 170.67, 198.43, 253.32, 315.29]
         
-
+        self.std_dev = [10.57, 9.54, 6.6, 5.01, 6.16, 6.4, 13.87, 7.26, 7.34, 6.91, 7.01, 8.78, 11.20, 13.40]
     def plot_all_data(self):
         data = {}
         ## Read and process each CSV file
@@ -80,11 +80,11 @@ class Plotter():
             df_camera = pd.read_csv(file, sep='\t')
             x_values = df_camera.iloc[:,0]
             y_values = df_camera.iloc[:,1]
-            plt.plot(x_values, y_values, label="camera_data_"+str(iter))
+            plt.plot(x_values, y_values, label="RealSense Data Trial "+str(iter))
             iter += 1
 
         ## Plot the results
-        plt.plot(self.y_axis, self.average_sensor_measurements, 'ro-', label="Sensor Array Data")
+        plt.errorbar(self.y_axis, self.average_sensor_measurements,yerr=self.std_dev, capsize=5, fmt='o-', color='red', ecolor='black', label="Average UV Sensor Array Data")
         plt.xlabel('Y axis (meters)', fontsize=16)
         plt.ylabel('Average UV Dose ($W/m^2$)', fontsize=16)
         plt.title('Camera Data with Average UV Sensor Data', fontsize = 24)
@@ -111,15 +111,21 @@ class Plotter():
 
         ## Compute the average y-value for each x
         averages = {x: sum(y_values) / len(y_values) for x, y_values in data.items()}
+        std_devs = {x: np.std(y_values) for x, y_values in data.items()}  # Calculate standard deviation
+
         ordered_data = OrderedDict(sorted(averages.items()))
+        # Extract x, y average, and standard deviation values for plotting
+        x_vals = list(ordered_data.keys())
+        y_avgs = list(ordered_data.values())
+        y_std = [std_devs[x] for x in ordered_data.keys()]  # Retrieve standard deviations in the same order
 
         ## Plot the results
         plt.figure()
-        plt.plot(ordered_data.keys(), ordered_data.values(), 'b', label='Camera Data')
-        plt.plot(self.y_axis, self.average_sensor_measurements, 'ro-', label="Sensor Array Data")
-        plt.xlabel('Y axis (meters)')
-        plt.ylabel('UV Dose ($W/m^2$)')
-        plt.title('Average UV Dosage For Ten 1D Passes')
+        plt.errorbar(ordered_data.keys(), ordered_data.values(), yerr=y_std, capsize=5, fmt='-', color='blue',ecolor='black', label='Average RealSense Data')
+        plt.errorbar(self.y_axis, self.average_sensor_measurements,yerr=self.std_dev, capsize=5, fmt='o-', color='red', ecolor='black', label="Average UV Sensor Array Data")
+        plt.xlabel('Y axis (meters)', fontsize=16)
+        plt.ylabel('UV Dose ($W/m^2$)', fontsize=16)
+        plt.title('Average Camera and UV Sensor Data for Ten 1D Passes', fontsize =24)
         plt.grid()
         plt.legend()
         plt.show()
@@ -127,7 +133,7 @@ class Plotter():
 
 if __name__ == '__main__':
     model = Plotter()
-    # model.plot_averages()
+    model.plot_averages()
     # model.plot_all_data()
     # model.plot_camera_data()
     # model.plot_sensor_data()
