@@ -1,10 +1,12 @@
 #!/usr/bin/env python
 import numpy as np
+from math import sqrt
+
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 
 
-def fit(order = 2, plotter = False):
+def fit(order = 2, plotter = False, mask_plotter = False):
     ## Measured Irradiance values
     ## Iradiance value at .4 meters from UV sensor
     # ir = [17.69, 16.38, 14.36, 12.21, 11.68, 12.11, 11.76, 10.64, 8.19, 5.13, 3.50, 2.57, 1.96, 1.56, 1.24, 1.00,
@@ -41,10 +43,37 @@ def fit(order = 2, plotter = False):
         # plt.savefig("Distance_vs_Irradiance.png", bbox_inches='tight')
         plt.show()
 
-    # This returns a polynomial function that takes single value or an array
-    # as an input value. Ex: model(np.array([0,1,2,3]))
+    if mask_plotter:
+        ticks = np.linspace(0,84,5)
+        tick_labels = np.linspace(-10,10,5,dtype=int)
+
+        window = 85
+        ramped_mask = np.zeros((window, window))
+        center_r = window/2
+        center_c = window/2
+        for r in range(window):
+            for c in range(window):
+                radius_dist = sqrt( (r-center_r)**2 + (c-center_c)**2 ) / 8
+                if radius_dist > 10:
+                    ramped_mask[r,c] = 0
+
+                else:
+                    ramped_mask[r,c] = model(radius_dist)
+
+
+        plt.imshow(ramped_mask, cmap = 'RdYlGn', interpolation='none')
+        plt.xticks(ticks, tick_labels)
+        plt.yticks(ticks, tick_labels)
+        plt.xlabel('Distance from the Center of UV Exposed Area ($cm$)',fontsize=12)
+        plt.ylabel('Distance from the Center of UV Exposed Area ($cm$)',fontsize=12)
+        plt.title('Kernel Mask of UV Light Source', fontsize=18)
+        colorbar = plt.colorbar(label='UV Irradiance $(mW/cm^2)$')
+        colorbar.ax.yaxis.label.set_fontsize(12)  # Set the fontsize here
+
+        plt.show()
+
     return model
 
 if __name__ == '__main__':
-    model = fit(15, plotter = True)
+    model = fit(15, mask_plotter = True)
     # print(model)
