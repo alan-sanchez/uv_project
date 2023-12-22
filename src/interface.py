@@ -13,6 +13,7 @@ class SpeechToText:
     def __init__(self):
         '''
         A constructor that initializes the design layout of the web interface.
+        param self: The self reference.
         '''
         ## Initialze the interface and define the input as the microphone
         ## and return the filepath of the audio as a text
@@ -24,6 +25,10 @@ class SpeechToText:
     def process(self,filepath):
         '''
         A function that uses the whisper python library to trascribe an audio file.
+        param self: The self reference.
+        param filepath: directory of saved audio.
+
+        return transcribe: Transcribe audio in a String message type. 
         '''
         model = whisper.load_model("base") #tiny, base, small, medium, large
         result = model.transcribe(filepath)
@@ -34,6 +39,7 @@ class SpeechToText:
     def run_app(self):
         '''
         A function that launches the app.
+        param self: The self reference. 
         '''
         self.app.launch()   
 
