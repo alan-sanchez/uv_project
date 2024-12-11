@@ -119,71 +119,102 @@ class Plotter():
         y_std = [camera_dose_std_devs[x] for x in ordered_data.keys()]  # Retrieve standard deviations in the same order
 
         ## Plot the results
-        # plt.figure()
-        # plt.errorbar(ordered_data.keys(), ordered_data.values(), yerr=y_std, capsize=5, fmt='-', color='blue',ecolor='black', label='Average RealSense Data')
-        # plt.errorbar(self.sensor_y_axis, self.average_sensor_measurements,yerr=self.std_dev, capsize=5, fmt='o-', color='red', ecolor='black', label="Average UV Sensor Array Data")
-        # plt.xlabel('Y axis (meters)', fontsize=16)
-        # plt.ylabel('UV Dose ($W/m^2$)', fontsize=16)
-        # plt.title('Average Data for Ten 1D Passes', fontsize =18) #Camera and UV Sensor
-        # plt.grid()
-        # plt.legend(fontsize='large')
-        # plt.show()
+        plt.figure()
+        plt.errorbar(ordered_data.keys(), ordered_data.values(), yerr=y_std, capsize=5, fmt='-', color='blue',ecolor='black', label='Average RealSense Data')
+        plt.errorbar(self.sensor_y_axis, self.average_sensor_measurements,yerr=self.std_dev, capsize=5, fmt='o-', color='red', ecolor='black', label="Average UV Sensor Array Data")
+        plt.xlabel('Position (meters)', fontsize=16)
+        plt.ylabel('UV Dose ($W/m^2$)', fontsize=16)
+        plt.title('Average Data for Ten 1D Passes', fontsize =18) #Camera and UV Sensor
+        plt.grid()
+        plt.legend(fontsize='large')
+        plt.show()
 
         if difference:
-            plt.figure(2)
-
             # 
             ordered_camera_y_axis = list(ordered_data.keys())
             ordered_camera_dose_avgs = list(ordered_data.values())
     
-
             # Interpolate camera data to match UV sensor data lengths
             dose_camera_interp = np.interp(self.sensor_y_axis, ordered_camera_y_axis, ordered_camera_dose_avgs)
             
             # Calculate difference  
-            dose_diff = dose_camera_interp - self.average_sensor_measurements
+            dose_diff_low = abs(dose_camera_interp - self.average_sensor_measurements)
             # print(dose_diff)
 
             # Calculate percentage difference 
-            dose_percent_diff = abs(dose_diff) / self.average_sensor_measurements * 100
+            dose_percent_diff_low = dose_diff_low / self.average_sensor_measurements * 100
 
-            # Plot difference 
-            plt.plot(self.sensor_y_axis, dose_percent_diff, color='green', label='Difference')
+            # Optional: Calculate and print statistics on difference 
+            mean_diff = np.mean(dose_diff_low)
+            min_diff = np.min(dose_diff_low)
+            max_diff = np.max(dose_diff_low)
 
-            # Add legend entry for difference plot 
-            plt.legend(fontsize='large') 
-
-            # # Optional: Calculate and print statistics on difference 
-            # mean_diff = np.mean(dose_diff)
-            # print("Mean Difference:", mean_diff) 
-       
-
-            # prtin
-            temp = list(self.sensor_y_axis)
-            r_sensor_y_axis = temp[::-1]
-            r_avg_sensor_meas = self.average_sensor_measurements[::-1]
-            dose_sensor_interp = np.interp(ordered_camera_y_axis[::-1], r_sensor_y_axis, r_avg_sensor_meas)
+            # print("Mean Difference: ", mean_diff)
+            # print("Min Difference: ", min_diff)
+            # print("Max Difference: ", max_diff) 
             
-            
+            ###################### interpolation switch ##########################
+            # temp = list(self.sensor_y_axis)
+            # r_sensor_y_axis = temp[::-1]
+            # r_avg_sensor_meas = self.average_sensor_measurements[::-1]
+            # dose_sensor_interp = np.interp(ordered_camera_y_axis[::-1], r_sensor_y_axis, r_avg_sensor_meas)  
 
-            # # Calculate difference  
-            dose_diff = dose_sensor_interp - ordered_camera_dose_avgs[::-1]
+            # # # Calculate difference  
+            # dose_diff_high = abs(dose_sensor_interp - ordered_camera_dose_avgs[::-1])
 
-            # Calculate percentage difference 
-            dose_percent_diff = abs(dose_diff) / dose_sensor_interp * 100
+            # # Calculate percentage difference 
+            # dose_percent_diff_high = dose_diff_high / dose_sensor_interp * 100
 
-            # Plot difference 
-            plt.plot(ordered_camera_y_axis[::-1], dose_percent_diff, color='blue', label='Difference_2')
 
-            # Add legend entry for difference plot 
-            plt.legend(fontsize='large') 
+            ################################ Plots ##############################
+            # plt.figure(1)
+            # # Plot percentage difference 
+            # plt.plot(self.sensor_y_axis, dose_percent_diff_low, color='green', label='Difference')
+            # plt.legend(fontsize='large') 
+
+            # plt.plot(ordered_camera_y_axis[::-1], dose_percent_diff_high, color='blue', label='Difference_2')
+            # plt.legend(fontsize='large') 
+
+            # plt.figure(2)
+            # # Plot dose difference
+            # plt.plot(self.sensor_y_axis, dose_diff_low, color='green', label='Difference')
+            # plt.legend(fontsize='large') 
+
+            # plt.plot(ordered_camera_y_axis[::-1], dose_diff_high, color='blue', label='Difference_2')
+            # plt.legend(fontsize='large') 
+
+            fig, ax1 = plt.subplots()
+
+            # Plotting dose difference on the primary y-axis
+            ax1.set_xlabel('Position (meters)',fontsize=16)
+            ax1.set_ylabel('UV Dose $(W/m^2)$', color='tab:blue',fontsize=16)
+            ax1.plot(self.sensor_y_axis, dose_diff_low, '--', color='tab:blue',label='Difference')
+            ax1.tick_params(axis='y', labelcolor='tab:blue')
+
+            # Create a grid for the primary y-axis
+            ax1.grid(True, which="both", ls="-", c='.7')
+
+            # Creating a secondary y-axis for the percentage
+            ax2 = ax1.twinx()
+            ax2.set_ylabel('Percentage (%)', color='tab:orange',fontsize=16)
+            ax2.plot(self.sensor_y_axis, dose_percent_diff_low, color='tab:orange', label='Difference Percentage')
+            ax2.tick_params(axis='y', labelcolor='tab:orange')
+
+            # Since we have two axes, and we want a single legend, 
+            # we need to gather the legend handles and labels from both axes.
+            handles1, labels1 = ax1.get_legend_handles_labels()
+            handles2, labels2 = ax2.get_legend_handles_labels()
+            ax1.legend(handles1 + handles2, labels1 + labels2, loc='upper right',fontsize='large')
+
+
+            plt.title('Dose Difference Between UV Sensor and Estimated Model',fontsize=20)
 
             plt.show()
 
 
 if __name__ == '__main__':
     model = Plotter()
-    model.plot_averages(difference=True)
+    model.plot_averages(difference=False)
     # model.plot_all_data()
     # model.plot_camera_data()
     # model.plot_sensor_data()
